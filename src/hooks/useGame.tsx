@@ -515,7 +515,15 @@ export const useGame = () => {
     
     // Enemy collisions
     for (const enemy of enemies) {
-      if (checkCollision(player, enemy)) {
+      // Fix: Convert player state to the correct rectangle format for collision check
+      const playerRect = {
+        x: player.position.x,
+        y: player.position.y,
+        width: player.width,
+        height: player.height
+      };
+      
+      if (checkCollision(playerRect, enemy)) {
         if (!player.isDead) {
           setPlayer(prev => ({
             ...prev,
@@ -554,7 +562,15 @@ export const useGame = () => {
     
     // Hazard collisions
     for (const hazard of hazards) {
-      if (checkCollision(player, hazard)) {
+      // Fix: Convert player state to the correct rectangle format for collision check
+      const playerRect = {
+        x: player.position.x,
+        y: player.position.y,
+        width: player.width,
+        height: player.height
+      };
+      
+      if (checkCollision(playerRect, hazard)) {
         if (!player.isDead) {
           setPlayer(prev => ({
             ...prev,
@@ -595,7 +611,15 @@ export const useGame = () => {
     setEnergyOrbs(prevOrbs => {
       let scoreIncrease = 0;
       const updatedOrbs = prevOrbs.map(orb => {
-        if (!orb.collected && checkCollision(player, { x: orb.x, y: orb.y, width: 10, height: 10 })) {
+        // Fix: Convert player state to the correct rectangle format for collision check
+        const playerRect = {
+          x: player.position.x,
+          y: player.position.y,
+          width: player.width,
+          height: player.height
+        };
+        
+        if (!orb.collected && checkCollision(playerRect, { x: orb.x, y: orb.y, width: 10, height: 10 })) {
           scoreIncrease += 10;
           toast("Energy orb collected!");
           return { ...orb, collected: true };
@@ -627,7 +651,15 @@ export const useGame = () => {
       height: 30
     };
     
-    if (checkCollision(player, endPositionHitbox)) {
+    // Fix: Convert player state to the correct rectangle format for collision check
+    const playerRect = {
+      x: player.position.x,
+      y: player.position.y,
+      width: player.width,
+      height: player.height
+    };
+    
+    if (checkCollision(playerRect, endPositionHitbox)) {
       handleVictory();
     }
     
