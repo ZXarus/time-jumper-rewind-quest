@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { Motion, Rewind } from "lucide-react";
+import { Clock, Rewind } from "lucide-react";
 
 interface EnergyMeterProps {
   currentEnergy: number;
@@ -36,7 +36,7 @@ const EnergyMeter: React.FC<EnergyMeterProps> = ({
         {isRewinding ? (
           <Rewind className="mr-2 text-game-accent" />
         ) : (
-          <Motion className="mr-2 text-game-energy" />
+          <Clock className="mr-2 text-game-energy" />
         )}
         <span className="text-white font-bold">Time Energy</span>
       </div>
