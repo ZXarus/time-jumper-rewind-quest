@@ -5,7 +5,7 @@ import {
   GAME_WIDTH, GAME_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT,
   MAX_ENERGY, ENERGY_REGEN_RATE,
 } from "@/constants/gameConstants";
-import { levels } from "@/data/levels";
+import { levels } from "@/data/levels"; // Updated import path
 import { toast } from "sonner";
 
 // Import utilities

@@ -54,6 +54,7 @@ export const initLevel = (
     gameOver: false,
     victory: false,
     level: levelIndex + 1,
+    score: 0,
   });
   
   toast(`Level ${levelIndex + 1} started!`);
