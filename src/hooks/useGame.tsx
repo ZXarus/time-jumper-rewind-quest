@@ -1,17 +1,21 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { 
-  PlayerState, GameState, Platform, Enemy, Hazard, 
-  EnergyOrb, GameControls, TimePosition, Position, Level
-} from "@/types/game";
+import { PlayerState, GameState, Platform, Enemy, Hazard, EnergyOrb, GameControls, Level } from "@/types/game";
 import { 
   GAME_WIDTH, GAME_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT,
-  GRAVITY, PLAYER_SPEED, JUMP_FORCE, MAX_FALL_SPEED,
-  MAX_ENERGY, ENERGY_REGEN_RATE, REWIND_ENERGY_COST,
-  TIME_POSITION_RECORD_INTERVAL, MAX_TIME_POSITIONS
+  MAX_ENERGY, ENERGY_REGEN_RATE,
 } from "@/constants/gameConstants";
 import { levels } from "@/data/levels";
 import { toast } from "sonner";
+
+// Import utilities
+import { checkCollision, applyMovement, updatePlatforms, updateEnemies } from "@/utils/gamePhysics";
+import { recordTimePosition, rewindToLastPosition } from "@/utils/timeRewind";
+import { 
+  handlePlatformCollisions, handleDangerCollisions, 
+  handleEmergencyRewind, collectEnergyOrbs, checkLevelCompletion 
+} from "@/utils/collisionDetection";
+import { initLevel } from "@/utils/levelManager";
 
 export const useGame = () => {
   // Game state
@@ -62,62 +66,28 @@ export const useGame = () => {
   const lastTimeRef = useRef<number>(0);
   
   // Initialize level
-  const initLevel = useCallback((levelIndex: number) => {
-    if (levelIndex >= levels.length) {
-      // Game completed
-      toast("Congratulations! You've completed all levels!");
-      setGameState(prev => ({
-        ...prev,
-        paused: true,
-        gameOver: false,
-        victory: true,
-      }));
-      return;
-    }
-    
-    const level = levels[levelIndex];
-    
-    setCurrentLevel(level);
-    setPlatforms([...level.platforms]);
-    setEnemies([...level.enemies]);
-    setHazards([...level.hazards]);
-    setEnergyOrbs([...level.energyOrbs]);
-    
-    setPlayer({
-      position: { ...level.startPosition },
-      velocity: { x: 0, y: 0 },
-      width: PLAYER_WIDTH,
-      height: PLAYER_HEIGHT,
-      isJumping: false,
-      isGrounded: false,
-      isDead: false,
-      facingDirection: 'right',
-      timePositions: [],
-      energy: MAX_ENERGY,
-      maxEnergy: MAX_ENERGY,
-      isRewinding: false,
-    });
-    
-    setGameState(prev => ({
-      ...prev,
-      paused: false,
-      gameOver: false,
-      victory: false,
-      level: levelIndex + 1,
-    }));
-    
-    toast(`Level ${levelIndex + 1} started!`);
+  const initGameLevel = useCallback((levelIndex: number) => {
+    return initLevel(
+      levelIndex,
+      setCurrentLevel,
+      setPlatforms,
+      setEnemies,
+      setHazards,
+      setEnergyOrbs,
+      setPlayer,
+      setGameState
+    );
   }, []);
   
   // Reset the current level
   const resetLevel = useCallback(() => {
-    initLevel(gameState.level - 1);
-  }, [gameState.level, initLevel]);
+    initGameLevel(gameState.level - 1);
+  }, [gameState.level, initGameLevel]);
   
   // Advance to the next level
   const nextLevel = useCallback(() => {
-    initLevel(gameState.level);
-  }, [gameState.level, initLevel]);
+    initGameLevel(gameState.level);
+  }, [gameState.level, initGameLevel]);
   
   // Handle game over
   const handleGameOver = useCallback(() => {
@@ -136,17 +106,6 @@ export const useGame = () => {
       score: prev.score + 100,
     }));
     toast("Level Complete!");
-  }, []);
-  
-  // Check collision between two rectangles
-  const checkCollision = useCallback((rect1: { x: number, y: number, width: number, height: number }, 
-                          rect2: { x: number, y: number, width: number, height: number }) => {
-    return (
-      rect1.x < rect2.x + rect2.width &&
-      rect1.x + rect1.width > rect2.x &&
-      rect1.y < rect2.y + rect2.height &&
-      rect1.y + rect1.height > rect2.y
-    );
   }, []);
   
   // Handle keyboard inputs
@@ -232,56 +191,32 @@ export const useGame = () => {
     setPlayer(prevPlayer => {
       // Handle rewinding time
       if (controls.rewind && prevPlayer.energy > 0 && prevPlayer.timePositions.length > 0) {
-        // Consume energy
-        const newEnergy = Math.max(0, prevPlayer.energy - REWIND_ENERGY_COST);
+        const rewindResult = rewindToLastPosition(prevPlayer);
         
-        // Get the previous position from the time positions array
-        const prevTimePosition = prevPlayer.timePositions[prevPlayer.timePositions.length - 1];
-        const newTimePositions = [...prevPlayer.timePositions.slice(0, -1)];
-        
-        // If no more energy or positions, stop rewinding
-        if (newEnergy <= 0 || newTimePositions.length === 0) {
+        if (rewindResult.shouldStopRewinding || !rewindResult.newPosition) {
           return {
             ...prevPlayer,
             isRewinding: false,
-            energy: newEnergy,
-            timePositions: newTimePositions
+            energy: rewindResult.newEnergy,
+            timePositions: rewindResult.newTimePositions
           };
         }
         
         // Return to the previous position
         return {
           ...prevPlayer,
-          position: { x: prevTimePosition.x, y: prevTimePosition.y },
+          position: rewindResult.newPosition,
           isDead: false,
           isRewinding: true,
-          energy: newEnergy,
-          timePositions: newTimePositions
+          energy: rewindResult.newEnergy,
+          timePositions: rewindResult.newTimePositions
         };
       }
       
       // If not rewinding, proceed with normal physics
-      let newPosition = { ...prevPlayer.position };
-      let newVelocity = { ...prevPlayer.velocity };
-      let newFacingDirection = prevPlayer.facingDirection;
-      let isGrounded = false;
       
-      // Record position for time rewind (every few frames to save memory)
-      let newTimePositions = [...prevPlayer.timePositions];
-      if (frameCountRef.current % TIME_POSITION_RECORD_INTERVAL === 0 && !prevPlayer.isRewinding) {
-        newTimePositions.push({
-          x: prevPlayer.position.x,
-          y: prevPlayer.position.y,
-          timestamp: Date.now()
-        });
-        
-        // Limit the number of stored positions
-        if (newTimePositions.length > MAX_TIME_POSITIONS) {
-          newTimePositions = newTimePositions.slice(
-            newTimePositions.length - MAX_TIME_POSITIONS
-          );
-        }
-      }
+      // Record position for time rewind
+      const newTimePositions = recordTimePosition(prevPlayer, frameCountRef.current);
       
       // Regenerate energy when not rewinding
       let newEnergy = prevPlayer.energy;
@@ -302,38 +237,19 @@ export const useGame = () => {
         };
       }
       
-      // Apply horizontal movement
-      if (controls.left) {
-        newVelocity.x = -PLAYER_SPEED;
-        newFacingDirection = 'left';
-      } else if (controls.right) {
-        newVelocity.x = PLAYER_SPEED;
-        newFacingDirection = 'right';
-      } else {
-        // Apply friction
-        newVelocity.x *= 0.8;
-        if (Math.abs(newVelocity.x) < 0.1) newVelocity.x = 0;
-      }
+      // Apply physics movement
+      const movementResult = applyMovement(
+        prevPlayer.position,
+        prevPlayer.velocity,
+        controls,
+        prevPlayer.isGrounded,
+        prevPlayer.isJumping
+      );
       
-      // Apply jumping
-      if (controls.jump && prevPlayer.isGrounded && !prevPlayer.isJumping) {
-        newVelocity.y = JUMP_FORCE;
-        isGrounded = false;
-      } else {
-        // Apply gravity
-        newVelocity.y += GRAVITY;
-        
-        // Limit fall speed
-        if (newVelocity.y > MAX_FALL_SPEED) {
-          newVelocity.y = MAX_FALL_SPEED;
-        }
-      }
+      // Apply screen boundaries
+      let newPosition = { ...movementResult.position };
+      let newVelocity = { ...movementResult.velocity };
       
-      // Update position based on velocity
-      newPosition.x += newVelocity.x;
-      newPosition.y += newVelocity.y;
-      
-      // Screen boundaries
       if (newPosition.x < 0) {
         newPosition.x = 0;
         newVelocity.x = 0;
@@ -360,9 +276,9 @@ export const useGame = () => {
         ...prevPlayer,
         position: newPosition,
         velocity: newVelocity,
-        isGrounded: isGrounded,
-        isJumping: newVelocity.y < 0,
-        facingDirection: newFacingDirection,
+        isGrounded: movementResult.isGrounded,
+        isJumping: movementResult.isJumping,
+        facingDirection: movementResult.facingDirection,
         isRewinding: false,
         energy: newEnergy,
         timePositions: newTimePositions
@@ -370,97 +286,10 @@ export const useGame = () => {
     });
     
     // Update platforms (for moving platforms)
-    setPlatforms(prevPlatforms => {
-      return prevPlatforms.map(platform => {
-        if (platform.type !== 'moving' || !platform.direction || 
-            !platform.speed || !platform.range || !platform.initialPosition) {
-          return platform;
-        }
-        
-        let newX = platform.x;
-        let newY = platform.y;
-        
-        // Calculate movement based on direction
-        if (platform.direction === 'horizontal') {
-          const maxOffset = platform.range / 2;
-          const centerX = platform.initialPosition.x;
-          const offset = newX - centerX;
-          
-          // Change direction if reached range limit
-          if (Math.abs(offset) >= maxOffset) {
-            platform.speed = -platform.speed;
-          }
-          
-          newX += platform.speed;
-        } else if (platform.direction === 'vertical') {
-          const maxOffset = platform.range / 2;
-          const centerY = platform.initialPosition.y;
-          const offset = newY - centerY;
-          
-          // Change direction if reached range limit
-          if (Math.abs(offset) >= maxOffset) {
-            platform.speed = -platform.speed;
-          }
-          
-          newY += platform.speed;
-        }
-        
-        return {
-          ...platform,
-          x: newX,
-          y: newY
-        };
-      });
-    });
+    setPlatforms(prevPlatforms => updatePlatforms(prevPlatforms));
     
     // Update enemies
-    setEnemies(prevEnemies => {
-      return prevEnemies.map(enemy => {
-        if (!enemy.range || !enemy.initialPosition) {
-          return enemy;
-        }
-        
-        let newX = enemy.x;
-        let newY = enemy.y;
-        let newDirection = enemy.direction;
-        
-        if (enemy.type === 'patrol') {
-          const maxOffset = enemy.range / 2;
-          const centerX = enemy.initialPosition.x;
-          const offset = newX - centerX;
-          
-          // Change direction if reached range limit
-          if (Math.abs(offset) >= maxOffset) {
-            enemy.speed = -enemy.speed;
-            newDirection = enemy.speed > 0 ? 'right' : 'left';
-          }
-          
-          newX += enemy.speed;
-        } else if (enemy.type === 'flying') {
-          const maxOffsetX = enemy.range / 2;
-          const centerX = enemy.initialPosition.x;
-          const offsetX = newX - centerX;
-          
-          // Change direction if reached range limit
-          if (Math.abs(offsetX) >= maxOffsetX) {
-            enemy.speed = -enemy.speed;
-            newDirection = enemy.speed > 0 ? 'right' : 'left';
-          }
-          
-          newX += enemy.speed;
-          
-          // Add slight vertical movement for flying enemies
-          newY += Math.sin(timestamp / 500) * 0.5;
-        }
-        
-        return {
-          ...enemy,
-          x: newX,
-          y: newY,
-          direction: newDirection
-        };
-      });
-    });
+    setEnemies(prevEnemies => updateEnemies(prevEnemies, timestamp));
     
     frameRef.current = requestAnimationFrame(gameLoop);
   }, [controls, gameState]);
@@ -473,197 +302,65 @@ export const useGame = () => {
     }
     
     // Platform collisions
-    let isGrounded = false;
-    
-    for (const platform of platforms) {
-      // Create larger hitbox for platform top for better platform detection
-      const platformTopHitbox = {
-        x: platform.x,
-        y: platform.y - 5, // Slightly above platform
-        width: platform.width,
-        height: 10
-      };
-      
-      const playerBottomHitbox = {
-        x: player.position.x + 2,
-        y: player.position.y + player.height - 5,
-        width: player.width - 4,
-        height: 10
-      };
-      
-      // Check if player is on top of a platform
-      if (checkCollision(playerBottomHitbox, platformTopHitbox) && player.velocity.y >= 0) {
-        setPlayer(prev => ({
-          ...prev,
-          position: { ...prev.position, y: platform.y - player.height },
-          velocity: { ...prev.velocity, y: 0 },
-          isGrounded: true,
-          isJumping: false
-        }));
-        isGrounded = true;
-        break;
-      }
-    }
-    
-    // Update grounded state if no platforms were collided with
-    if (!isGrounded && player.isGrounded) {
+    const platformResult = handlePlatformCollisions(player, platforms);
+    if (platformResult.isGrounded !== player.isGrounded || 
+        platformResult.newPlayerState.position?.y !== player.position.y) {
       setPlayer(prev => ({
         ...prev,
-        isGrounded: false
+        ...platformResult.newPlayerState
       }));
     }
     
-    // Enemy collisions
-    for (const enemy of enemies) {
-      // Fix: Convert player state to the correct rectangle format for collision check
-      const playerRect = {
-        x: player.position.x,
-        y: player.position.y,
-        width: player.width,
-        height: player.height
-      };
+    // Enemy and hazard collisions
+    const dangerResult = handleDangerCollisions(player, enemies, hazards, handleGameOver);
+    if (dangerResult.isDead && !player.isDead) {
+      setPlayer(prev => ({ ...prev, isDead: true }));
       
-      if (checkCollision(playerRect, enemy)) {
-        if (!player.isDead) {
-          setPlayer(prev => ({
-            ...prev,
-            isDead: true
-          }));
-          
-          // Auto-rewind if player has full energy
-          if (player.energy >= player.maxEnergy * 0.8) {
-            setTimeout(() => {
-              if (player.timePositions.length > 0) {
-                // Find a safe position from about 1 second ago (20 positions at 3 frame interval)
-                const safeIndex = Math.max(0, player.timePositions.length - 20);
-                const safePosition = player.timePositions[safeIndex];
-                
-                setPlayer(prev => ({
-                  ...prev,
-                  position: { x: safePosition.x, y: safePosition.y },
-                  velocity: { x: 0, y: 0 },
-                  isDead: false,
-                  energy: 0, // Drain all energy for this emergency rewind
-                  timePositions: prev.timePositions.slice(0, safeIndex)
-                }));
-                
-                toast("Emergency time rewind! Energy depleted!");
-              }
-            }, 500);
-          } else {
-            setTimeout(() => {
-              handleGameOver();
-            }, 1000);
-          }
+      // Auto-rewind if player has sufficient energy
+      if (dangerResult.shouldEmergencyRewind) {
+        const didRewind = handleEmergencyRewind(player, (newState) => {
+          setPlayer(prev => ({ ...prev, ...newState }));
+        });
+        
+        if (!didRewind) {
+          setTimeout(() => handleGameOver(), 1000);
         }
-        break;
-      }
-    }
-    
-    // Hazard collisions
-    for (const hazard of hazards) {
-      // Fix: Convert player state to the correct rectangle format for collision check
-      const playerRect = {
-        x: player.position.x,
-        y: player.position.y,
-        width: player.width,
-        height: player.height
-      };
-      
-      if (checkCollision(playerRect, hazard)) {
-        if (!player.isDead) {
-          setPlayer(prev => ({
-            ...prev,
-            isDead: true
-          }));
-          
-          // Auto-rewind if player has full energy
-          if (player.energy >= player.maxEnergy * 0.8) {
-            setTimeout(() => {
-              if (player.timePositions.length > 0) {
-                // Find a safe position from about 1 second ago (20 positions at 3 frame interval)
-                const safeIndex = Math.max(0, player.timePositions.length - 20);
-                const safePosition = player.timePositions[safeIndex];
-                
-                setPlayer(prev => ({
-                  ...prev,
-                  position: { x: safePosition.x, y: safePosition.y },
-                  velocity: { x: 0, y: 0 },
-                  isDead: false,
-                  energy: 0, // Drain all energy for this emergency rewind
-                  timePositions: prev.timePositions.slice(0, safeIndex)
-                }));
-                
-                toast("Emergency time rewind! Energy depleted!");
-              }
-            }, 500);
-          } else {
-            setTimeout(() => {
-              handleGameOver();
-            }, 1000);
-          }
-        }
-        break;
+      } else {
+        setTimeout(() => handleGameOver(), 1000);
       }
     }
     
     // Energy orb collection
-    setEnergyOrbs(prevOrbs => {
-      let scoreIncrease = 0;
-      const updatedOrbs = prevOrbs.map(orb => {
-        // Fix: Convert player state to the correct rectangle format for collision check
-        const playerRect = {
-          x: player.position.x,
-          y: player.position.y,
-          width: player.width,
-          height: player.height
-        };
-        
-        if (!orb.collected && checkCollision(playerRect, { x: orb.x, y: orb.y, width: 10, height: 10 })) {
-          scoreIncrease += 10;
-          toast("Energy orb collected!");
-          return { ...orb, collected: true };
-        }
-        return orb;
-      });
-      
-      if (scoreIncrease > 0) {
-        // Increase score and energy
-        setGameState(prev => ({
-          ...prev,
-          score: prev.score + scoreIncrease
-        }));
-        
-        setPlayer(prev => ({
-          ...prev,
-          energy: Math.min(prev.maxEnergy, prev.energy + 20)
-        }));
+    const orbResult = collectEnergyOrbs(
+      player, 
+      energyOrbs,
+      (amount) => {
+        setGameState(prev => ({ ...prev, score: prev.score + amount }));
       }
-      
-      return updatedOrbs;
-    });
+    );
     
-    // Check victory condition (player reached end position)
-    const endPositionHitbox = {
-      x: currentLevel.endPosition.x - 10,
-      y: currentLevel.endPosition.y - 10,
-      width: 30,
-      height: 30
-    };
-    
-    // Fix: Convert player state to the correct rectangle format for collision check
-    const playerRect = {
-      x: player.position.x,
-      y: player.position.y,
-      width: player.width,
-      height: player.height
-    };
-    
-    if (checkCollision(playerRect, endPositionHitbox)) {
-      handleVictory();
+    if (orbResult.energyIncrease > 0) {
+      setPlayer(prev => ({
+        ...prev,
+        energy: Math.min(prev.maxEnergy, prev.energy + orbResult.energyIncrease)
+      }));
+      setEnergyOrbs(orbResult.updatedOrbs);
     }
     
-  }, [player, platforms, enemies, hazards, energyOrbs, currentLevel, gameState, checkCollision, handleGameOver, handleVictory]);
+    // Check victory condition (player reached end position)
+    checkLevelCompletion(player, currentLevel.endPosition, handleVictory);
+    
+  }, [
+    player, 
+    platforms, 
+    enemies, 
+    hazards, 
+    energyOrbs, 
+    currentLevel, 
+    gameState, 
+    handleGameOver, 
+    handleVictory
+  ]);
   
   // Start/stop game loop
   useEffect(() => {
@@ -671,7 +368,7 @@ export const useGame = () => {
     frameRef.current = requestAnimationFrame(gameLoop);
     
     // Initialize level
-    initLevel(0);
+    initGameLevel(0);
     
     // Clean up the game loop
     return () => {
@@ -679,7 +376,7 @@ export const useGame = () => {
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [gameLoop, initLevel]);
+  }, [gameLoop, initGameLevel]);
   
   return {
     gameState,
