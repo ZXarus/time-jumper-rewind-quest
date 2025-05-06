@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -97,5 +98,32 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .pixel-text {
+    font-family: 'Press Start 2P', system-ui, sans-serif;
+    image-rendering: pixelated;
+  }
+  
+  .game-canvas {
+    image-rendering: pixelated;
+    touch-action: none;
+  }
+  
+  .time-trail {
+    @apply absolute rounded-full opacity-30 bg-game-primary;
+    animation: fade-trail 0.8s ease-out forwards;
+  }
+  
+  .platform {
+    @apply bg-game-platform rounded-md;
+  }
+  
+  .energy-orb {
+    @apply absolute w-3 h-3 rounded-full bg-game-energy;
+    filter: drop-shadow(0 0 5px theme('colors.game.energy'));
+    animation: pulse-energy 1.5s ease-in-out infinite;
   }
 }
