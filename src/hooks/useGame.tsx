@@ -64,6 +64,7 @@ export const useGame = () => {
   const frameRef = useRef<number | null>(null);
   const frameCountRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
+  const gameInitializedRef = useRef<boolean>(false);
   
   // Initialize level
   const initGameLevel = useCallback((levelIndex: number) => {
@@ -367,8 +368,11 @@ export const useGame = () => {
     // Start the game loop
     frameRef.current = requestAnimationFrame(gameLoop);
     
-    // Initialize level
-    initGameLevel(0);
+    // Initialize level only once when component mounts
+    if (!gameInitializedRef.current) {
+      initGameLevel(0);
+      gameInitializedRef.current = true;
+    }
     
     // Clean up the game loop
     return () => {

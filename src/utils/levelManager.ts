@@ -13,16 +13,17 @@ export const initLevel = (
   setHazards: (hazards: Level['hazards']) => void,
   setEnergyOrbs: (energyOrbs: Level['energyOrbs']) => void,
   setPlayer: (playerState: PlayerState) => void,
-  setGameState: (gameState: Partial<GameState>) => void
+  setGameState: (gameState: GameState | ((prev: GameState) => GameState)) => void
 ): boolean => {
   if (levelIndex >= levels.length) {
     // Game completed
     toast("Congratulations! You've completed all levels!");
-    setGameState({
+    setGameState(prev => ({
+      ...prev,
       paused: true,
       gameOver: false,
       victory: true,
-    });
+    }));
     return false;
   }
   
@@ -49,13 +50,14 @@ export const initLevel = (
     isRewinding: false,
   });
   
-  setGameState({
+  setGameState(prev => ({
+    ...prev,
     paused: false,
     gameOver: false,
     victory: false,
     level: levelIndex + 1,
     score: 0,
-  });
+  }));
   
   toast(`Level ${levelIndex + 1} started!`);
   return true;
