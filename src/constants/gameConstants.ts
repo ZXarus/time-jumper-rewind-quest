@@ -1,4 +1,5 @@
 
+
 // Game physics
 export const GRAVITY = 0.5;
 export const JUMP_FORCE = -13;
@@ -23,6 +24,15 @@ export const PLAYER_HEIGHT = 50;
 // Level settings
 export const LEVEL_COUNT = 3;
 
+// Visual effects
+export const PARTICLE_COUNT = 5;
+export const PARTICLE_LIFETIME = 20;
+
+// Sound settings
+export const SOUND_ENABLED = true;
+export const MUSIC_VOLUME = 0.3;
+export const SFX_VOLUME = 0.5;
+
 // Game colors (for canvas rendering)
 export const COLORS = {
   background: '#1A1F2C',
@@ -37,4 +47,6 @@ export const COLORS = {
   energy: '#0EA5E9',
   energyBg: '#403E43',
   trajectory: '#D946EF',
+  particle: '#D946EF',
 };
+
