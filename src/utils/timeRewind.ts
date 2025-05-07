@@ -27,6 +27,12 @@ export const recordTimePosition = (
   return player.timePositions;
 };
 
+// Get all future positions from current rewind state (for trajectory visualization)
+export const getTrajectoryPositions = (timePositions: TimePosition[]): TimePosition[] => {
+  // Return a reversed copy to visualize upcoming positions during rewind
+  return [...timePositions].reverse();
+};
+
 // Rewind player to previous position
 export const rewindToLastPosition = (player: PlayerState): {
   newPosition: { x: number, y: number } | null;

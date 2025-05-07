@@ -36,4 +36,5 @@ export const COLORS = {
   text: '#FFFFFF',
   energy: '#0EA5E9',
   energyBg: '#403E43',
+  trajectory: '#D946EF',
 };

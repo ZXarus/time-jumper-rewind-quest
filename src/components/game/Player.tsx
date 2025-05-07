@@ -2,6 +2,7 @@
 import React, { useEffect, useRef } from "react";
 import { PlayerState, Position } from "@/types/game";
 import { COLORS } from "@/constants/gameConstants";
+import TimeTrajectory from "./TimeTrajectory";
 
 interface PlayerProps {
   player: PlayerState;
@@ -9,7 +10,7 @@ interface PlayerProps {
 }
 
 const Player: React.FC<PlayerProps> = ({ player, isRewinding }) => {
-  const { position, width, height, facingDirection, isDead } = player;
+  const { position, width, height, facingDirection, isDead, timePositions } = player;
   const playerRef = useRef<HTMLDivElement>(null);
 
   // Add time trail effect when rewinding
@@ -41,24 +42,34 @@ const Player: React.FC<PlayerProps> = ({ player, isRewinding }) => {
   }, [isRewinding, position.x, position.y, width, height]);
 
   return (
-    <div 
-      ref={playerRef}
-      className={`absolute transition-colors duration-75 rounded-md ${
-        isRewinding ? "bg-game-accent" : "bg-game-primary"
-      } ${isDead ? "opacity-50" : ""}`}
-      style={{
-        left: position.x,
-        top: position.y,
-        width: width,
-        height: height,
-        transform: facingDirection === "left" ? "scaleX(-1)" : "none",
-      }}
-    >
-      {/* Basic face for player character */}
-      <div className="absolute top-[10px] left-[5px] w-[5px] h-[5px] bg-black rounded-full"></div>
-      <div className="absolute top-[10px] right-[5px] w-[5px] h-[5px] bg-black rounded-full"></div>
-      <div className="absolute bottom-[15px] left-1/2 w-[10px] h-[3px] -translate-x-1/2 bg-black rounded-full"></div>
-    </div>
+    <>
+      {/* Render the trajectory visualization */}
+      <TimeTrajectory 
+        timePositions={timePositions}
+        isRewinding={isRewinding}
+        playerWidth={width}
+        playerHeight={height}
+      />
+      
+      <div 
+        ref={playerRef}
+        className={`absolute transition-colors duration-75 rounded-md ${
+          isRewinding ? "bg-game-accent" : "bg-game-primary"
+        } ${isDead ? "opacity-50" : ""}`}
+        style={{
+          left: position.x,
+          top: position.y,
+          width: width,
+          height: height,
+          transform: facingDirection === "left" ? "scaleX(-1)" : "none",
+        }}
+      >
+        {/* Basic face for player character */}
+        <div className="absolute top-[10px] left-[5px] w-[5px] h-[5px] bg-black rounded-full"></div>
+        <div className="absolute top-[10px] right-[5px] w-[5px] h-[5px] bg-black rounded-full"></div>
+        <div className="absolute bottom-[15px] left-1/2 w-[10px] h-[3px] -translate-x-1/2 bg-black rounded-full"></div>
+      </div>
+    </>
   );
 };
 
