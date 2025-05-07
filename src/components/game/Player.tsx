@@ -54,7 +54,7 @@ const Player: React.FC<PlayerProps> = ({ player, isRewinding }) => {
       <div 
         ref={playerRef}
         className={`absolute transition-colors duration-75 rounded-md ${
-          isRewinding ? "bg-game-accent" : "bg-game-primary"
+          isRewinding ? "bg-game-accent" : "bg-transparent"
         } ${isDead ? "opacity-50" : ""}`}
         style={{
           left: position.x,
@@ -64,28 +64,41 @@ const Player: React.FC<PlayerProps> = ({ player, isRewinding }) => {
           transform: facingDirection === "left" ? "scaleX(-1)" : "none",
         }}
       >
-        {/* Improved humanoid character */}
+        {/* More realistic human character */}
         <div className="absolute w-full h-full flex flex-col items-center">
           {/* Head */}
-          <div className="w-[60%] h-[40%] bg-white rounded-full relative mt-1">
+          <div className="w-[55%] h-[30%] bg-[#F5D0A9] rounded-full relative mt-1">
+            {/* Hair */}
+            <div className="absolute w-[100%] h-[50%] bg-[#4A3933] rounded-t-full top-[-3px]"></div>
             {/* Eyes */}
-            <div className="absolute top-[35%] left-[25%] w-[15%] h-[15%] bg-black rounded-full"></div>
-            <div className="absolute top-[35%] right-[25%] w-[15%] h-[15%] bg-black rounded-full"></div>
+            <div className="absolute top-[40%] left-[25%] w-[10%] h-[10%] bg-black rounded-full"></div>
+            <div className="absolute top-[40%] right-[25%] w-[10%] h-[10%] bg-black rounded-full"></div>
             {/* Mouth */}
-            <div className={`absolute bottom-[25%] left-[30%] w-[40%] h-[10%] rounded-full ${isDead ? "bg-red-500" : "bg-black"}`}></div>
+            <div className={`absolute bottom-[25%] left-[30%] w-[40%] h-[8%] rounded-full ${isDead ? "bg-red-500" : "bg-[#C96464]"}`}></div>
           </div>
           
-          {/* Body */}
-          <div className="w-[80%] h-[30%] bg-game-primary rounded-lg mt-[-2px]">
-            {/* Arms */}
-            <div className="absolute left-[-3px] top-[40%] w-[15%] h-[30%] bg-game-primary rounded-full"></div>
-            <div className="absolute right-[-3px] top-[40%] w-[15%] h-[30%] bg-game-primary rounded-full"></div>
+          {/* Torso - shirt with color */}
+          <div className="w-[70%] h-[35%] bg-[#61A3F6] rounded-lg mt-[-2px] relative">
+            {/* Collar */}
+            <div className="absolute top-0 left-[35%] w-[30%] h-[10%] bg-[#E1E1E1] rounded"></div>
           </div>
           
-          {/* Legs */}
-          <div className="flex w-full mt-[-2px]">
-            <div className="w-1/2 h-[25%] bg-game-primary rounded-b-lg mr-[1px]"></div>
-            <div className="w-1/2 h-[25%] bg-game-primary rounded-b-lg ml-[1px]"></div>
+          {/* Arms */}
+          <div className="flex w-[100%] justify-between mt-[-20px] relative z-10">
+            <div className="w-[15%] h-[25px] bg-[#F5D0A9] rounded-bl-full"></div>
+            <div className="w-[15%] h-[25px] bg-[#F5D0A9] rounded-br-full"></div>
+          </div>
+          
+          {/* Legs - pants */}
+          <div className="flex w-full mt-[-5px]">
+            <div className="w-1/2 h-[35%] bg-[#3A4154] rounded-b-lg mr-[1px]"></div>
+            <div className="w-1/2 h-[35%] bg-[#3A4154] rounded-b-lg ml-[1px]"></div>
+          </div>
+          
+          {/* Shoes */}
+          <div className="flex w-[90%] mt-[-2px]">
+            <div className="w-1/2 h-[10px] bg-[#2C2C2C] rounded-b-lg mr-[2px]"></div>
+            <div className="w-1/2 h-[10px] bg-[#2C2C2C] rounded-b-lg ml-[2px]"></div>
           </div>
         </div>
 

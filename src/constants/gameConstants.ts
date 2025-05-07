@@ -22,17 +22,17 @@ export const PLAYER_WIDTH = 30;
 export const PLAYER_HEIGHT = 50;
 
 // Level settings
-export const LEVEL_COUNT = 3;
+export const LEVEL_COUNT = 5; // Updated to 5 levels
 
 // Visual effects
-export const PARTICLE_COUNT = 5;
-export const PARTICLE_LIFETIME = 20;
+export const PARTICLE_COUNT = 8; // Increased for more visual interest
+export const PARTICLE_LIFETIME = 25; // Increased slightly
 
 // Sound settings
 export const SOUND_ENABLED = true;
 export const MUSIC_VOLUME = 0.3;
 export const SFX_VOLUME = 0.5;
-export const SOUND_PRELOAD = true; // Added to improve sound loading
+export const SOUND_PRELOAD = true; // Improves sound loading
 
 // Game colors (for canvas rendering)
 export const COLORS = {
@@ -49,5 +49,5 @@ export const COLORS = {
   energyBg: '#403E43',
   trajectory: '#D946EF',
   particle: '#D946EF',
-  ground: '#2A303C',  // Added for ground
+  ground: '#2A303C',
 };
