@@ -1,6 +1,6 @@
 
 import { Platform, Position, PlayerState, Enemy, Hazard, EnergyOrb } from "@/types/game";
-import { GRAVITY, MAX_FALL_SPEED, PLAYER_SPEED, JUMP_FORCE } from "@/constants/gameConstants";
+import { GRAVITY, MAX_FALL_SPEED, PLAYER_SPEED, JUMP_FORCE, GAME_HEIGHT, GROUND_HEIGHT } from "@/constants/gameConstants";
 
 // Check collision between two rectangles
 export const checkCollision = (
@@ -68,6 +68,13 @@ export const applyMovement = (
     x: position.x + newVelocity.x,
     y: position.y + newVelocity.y
   };
+  
+  // Check if player has reached the bottom of the screen (ground)
+  if (newPosition.y + GROUND_HEIGHT >= GAME_HEIGHT) {
+    newPosition.y = GAME_HEIGHT - GROUND_HEIGHT;
+    newVelocity.y = 0;
+    isGrounded = true;
+  }
   
   return {
     position: newPosition,

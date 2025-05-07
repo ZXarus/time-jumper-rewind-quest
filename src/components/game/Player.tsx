@@ -64,10 +64,35 @@ const Player: React.FC<PlayerProps> = ({ player, isRewinding }) => {
           transform: facingDirection === "left" ? "scaleX(-1)" : "none",
         }}
       >
-        {/* Basic face for player character */}
-        <div className="absolute top-[10px] left-[5px] w-[5px] h-[5px] bg-black rounded-full"></div>
-        <div className="absolute top-[10px] right-[5px] w-[5px] h-[5px] bg-black rounded-full"></div>
-        <div className="absolute bottom-[15px] left-1/2 w-[10px] h-[3px] -translate-x-1/2 bg-black rounded-full"></div>
+        {/* Improved humanoid character */}
+        <div className="absolute w-full h-full flex flex-col items-center">
+          {/* Head */}
+          <div className="w-[60%] h-[40%] bg-white rounded-full relative mt-1">
+            {/* Eyes */}
+            <div className="absolute top-[35%] left-[25%] w-[15%] h-[15%] bg-black rounded-full"></div>
+            <div className="absolute top-[35%] right-[25%] w-[15%] h-[15%] bg-black rounded-full"></div>
+            {/* Mouth */}
+            <div className={`absolute bottom-[25%] left-[30%] w-[40%] h-[10%] rounded-full ${isDead ? "bg-red-500" : "bg-black"}`}></div>
+          </div>
+          
+          {/* Body */}
+          <div className="w-[80%] h-[30%] bg-game-primary rounded-lg mt-[-2px]">
+            {/* Arms */}
+            <div className="absolute left-[-3px] top-[40%] w-[15%] h-[30%] bg-game-primary rounded-full"></div>
+            <div className="absolute right-[-3px] top-[40%] w-[15%] h-[30%] bg-game-primary rounded-full"></div>
+          </div>
+          
+          {/* Legs */}
+          <div className="flex w-full mt-[-2px]">
+            <div className="w-1/2 h-[25%] bg-game-primary rounded-b-lg mr-[1px]"></div>
+            <div className="w-1/2 h-[25%] bg-game-primary rounded-b-lg ml-[1px]"></div>
+          </div>
+        </div>
+
+        {/* Animation effect for movement */}
+        <div className={`absolute bottom-[-5px] left-0 w-full h-[3px] ${
+          !player.isGrounded && !player.isDead ? "bg-game-accent" : "bg-transparent"
+        }`}></div>
       </div>
     </>
   );

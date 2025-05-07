@@ -24,12 +24,15 @@ const TimeTrajectory: React.FC<TimeTrajectoryProps> = ({
   // Calculate size of trajectory points based on player size
   const pointSize = Math.min(playerWidth, playerHeight) * 0.3;
   
+  // Only display every 5th position for better visual clarity
+  const filteredPositions = timePositions.filter((_, i) => i % 5 === 0);
+  
   return (
     <>
-      {timePositions.map((pos, index) => {
+      {filteredPositions.map((pos, index) => {
         // Calculate opacity and size based on position in the array
-        const opacity = 0.2 + (index / timePositions.length) * 0.8;
-        const scale = 0.7 + (index / timePositions.length) * 0.5;
+        const opacity = 0.2 + (index / filteredPositions.length) * 0.8;
+        const scale = 0.7 + (index / filteredPositions.length) * 0.5;
         
         return (
           <div
@@ -42,12 +45,34 @@ const TimeTrajectory: React.FC<TimeTrajectoryProps> = ({
               height: pointSize * scale,
               opacity: opacity,
               zIndex: 5,
-              filter: "drop-shadow(0 0 2px rgba(217, 70, 239, 0.8))",
+              filter: "drop-shadow(0 0 5px rgba(217, 70, 239, 0.9))",
               animation: `pulse-energy ${0.5 + index * 0.1}s infinite alternate`,
             }}
           />
         );
       })}
+      
+      {/* Connect dots with lines for better visualization */}
+      <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-4" style={{opacity: 0.4}}>
+        {filteredPositions.map((pos, index, arr) => {
+          if (index < arr.length - 1) {
+            const next = arr[index + 1];
+            return (
+              <line 
+                key={`line-${index}`}
+                x1={pos.x + playerWidth/2} 
+                y1={pos.y + playerHeight/2}
+                x2={next.x + playerWidth/2} 
+                y2={next.y + playerHeight/2}
+                stroke={COLORS.trajectory}
+                strokeWidth="2"
+                strokeDasharray="3,3"
+              />
+            );
+          }
+          return null;
+        })}
+      </svg>
     </>
   );
 };

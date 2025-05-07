@@ -11,7 +11,8 @@ import EnergyMeter from "@/components/game/EnergyMeter";
 import GameStatus from "@/components/game/GameStatus";
 import SoundControl from "@/components/game/SoundControl";
 import ParticleEffect from "@/components/game/ParticleEffect";
-import { GAME_WIDTH, GAME_HEIGHT } from "@/constants/gameConstants";
+import RestartButton from "@/components/game/RestartButton";
+import { GAME_WIDTH, GAME_HEIGHT, GROUND_HEIGHT, COLORS } from "@/constants/gameConstants";
 import { playMusic, playSoundEffect } from "@/utils/soundEffects";
 import { Sparkles } from "lucide-react";
 
@@ -105,7 +106,21 @@ const Game = () => {
           {/* Sound controls */}
           <SoundControl />
           
+          {/* Restart button */}
+          <RestartButton onRestart={resetLevel} />
+          
           {/* Game elements */}
+          {/* Ground */}
+          <div 
+            className="absolute bottom-0 left-0 w-full" 
+            style={{ 
+              height: GROUND_HEIGHT, 
+              backgroundColor: COLORS.ground,
+              borderTop: '2px solid rgba(255,255,255,0.1)',
+              boxShadow: '0 -5px 15px rgba(0,0,0,0.2)',
+            }}
+          ></div>
+          
           {/* End position marker */}
           <div className="absolute w-8 h-8 rounded-full bg-game-accent animate-pulse" 
               style={{ 
@@ -198,6 +213,7 @@ const Game = () => {
           <li><span className="font-bold text-game-primary">Jump:</span> W, Space or Up Arrow</li>
           <li><span className="font-bold text-game-primary">Rewind Time:</span> Hold R (requires energy)</li>
           <li><span className="font-bold text-game-primary">Pause:</span> Escape</li>
+          <li><span className="font-bold text-game-primary">Restart:</span> Click restart button</li>
         </ul>
         <p className="mt-4 text-sm">
           <span className="font-bold text-game-primary">Pro Tip:</span> If you die with full energy, 

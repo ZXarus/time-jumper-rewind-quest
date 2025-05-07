@@ -10,7 +10,8 @@ export type SoundEffectType =
   | 'victory' 
   | 'startRewind' 
   | 'endRewind' 
-  | 'levelComplete';
+  | 'levelComplete'
+  | 'restart';  // Added restart sound
 
 // Music tracks
 export type MusicTrackType = 
@@ -29,6 +30,7 @@ const soundEffects: Record<SoundEffectType, HTMLAudioElement | null> = {
   startRewind: null,
   endRewind: null,
   levelComplete: null,
+  restart: null,  // Added restart sound
 };
 
 const musicTracks: Record<MusicTrackType, HTMLAudioElement | null> = {
@@ -48,6 +50,7 @@ const soundPaths: Record<SoundEffectType, string> = {
   startRewind: 'https://assets.codepen.io/21542/howler-sfx-select.mp3',
   endRewind: 'https://assets.codepen.io/21542/howler-sfx-shot.mp3',
   levelComplete: 'https://assets.codepen.io/21542/howler-sfx-levelup.mp3',
+  restart: 'https://assets.codepen.io/21542/howler-sfx-select.mp3', // Added restart sound
 };
 
 const musicPaths: Record<MusicTrackType, string> = {
@@ -61,6 +64,19 @@ const musicPaths: Record<MusicTrackType, string> = {
 let soundEnabled = true;
 let musicVolume = 0.3;
 let sfxVolume = 0.5;
+
+// Preload all sounds to avoid delay
+const preloadSounds = () => {
+  for (const type in soundPaths) {
+    const soundType = type as SoundEffectType;
+    initSound(soundType);
+  }
+  
+  for (const type in musicPaths) {
+    const musicType = type as MusicTrackType;
+    initMusic(musicType);
+  }
+};
 
 // Initialize sounds (lazy loading)
 const initSound = (type: SoundEffectType): HTMLAudioElement => {
@@ -76,6 +92,12 @@ const initMusic = (type: MusicTrackType): HTMLAudioElement => {
     musicTracks[type] = new Audio(musicPaths[type]);
     musicTracks[type]!.volume = musicVolume;
     musicTracks[type]!.loop = true;
+    
+    // Set low latency attribute to reduce delay
+    if ('mozPreservesPitch' in musicTracks[type]!) {
+      // Firefox
+      (musicTracks[type] as any).mozPreservesPitch = false;
+    }
   }
   return musicTracks[type]!;
 };
@@ -87,10 +109,16 @@ export const playSoundEffect = (type: SoundEffectType): void => {
   const sound = initSound(type);
   
   // Reset sound if it's already playing
+  sound.pause();
   sound.currentTime = 0;
-  sound.play().catch(error => {
-    console.log(`Error playing sound: ${error}`);
-  });
+  
+  // Play with reduced latency
+  const playPromise = sound.play();
+  if (playPromise !== undefined) {
+    playPromise.catch(error => {
+      console.log(`Error playing sound: ${error}`);
+    });
+  }
 };
 
 // Play background music
@@ -101,9 +129,22 @@ export const playMusic = (type: MusicTrackType): void => {
   stopAllMusic();
   
   const music = initMusic(type);
-  music.play().catch(error => {
-    console.log(`Error playing music: ${error}`);
-  });
+  
+  // Try to reduce audio latency
+  music.preload = 'auto';
+  music.autoplay = true;
+  
+  const playPromise = music.play();
+  if (playPromise !== undefined) {
+    playPromise.catch(error => {
+      console.log(`Error playing music: ${error}`);
+      
+      // Try again with user interaction later
+      document.addEventListener('click', () => {
+        music.play().catch(err => console.error("Music retry failed", err));
+      }, { once: true });
+    });
+  }
 };
 
 // Stop all music
@@ -158,3 +199,8 @@ export const setSfxVolume = (volume: number): void => {
     }
   });
 };
+
+// Preload all sounds at startup
+if (typeof window !== 'undefined') {
+  setTimeout(preloadSounds, 500);  // Delay preload to avoid initial load issues
+}

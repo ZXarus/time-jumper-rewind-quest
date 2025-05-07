@@ -1,5 +1,4 @@
 
-
 // Game physics
 export const GRAVITY = 0.5;
 export const JUMP_FORCE = -13;
@@ -16,6 +15,7 @@ export const MAX_TIME_POSITIONS = 300; // Store last 5 seconds @ 60fps
 // Game dimensions
 export const GAME_WIDTH = 800;
 export const GAME_HEIGHT = 500;
+export const GROUND_HEIGHT = 20; // Added for ground collision detection
 
 // Player dimensions
 export const PLAYER_WIDTH = 30;
@@ -32,6 +32,7 @@ export const PARTICLE_LIFETIME = 20;
 export const SOUND_ENABLED = true;
 export const MUSIC_VOLUME = 0.3;
 export const SFX_VOLUME = 0.5;
+export const SOUND_PRELOAD = true; // Added to improve sound loading
 
 // Game colors (for canvas rendering)
 export const COLORS = {
@@ -48,5 +49,5 @@ export const COLORS = {
   energyBg: '#403E43',
   trajectory: '#D946EF',
   particle: '#D946EF',
+  ground: '#2A303C',  // Added for ground
 };
-
