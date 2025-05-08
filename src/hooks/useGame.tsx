@@ -81,10 +81,12 @@ export const useGame = () => {
   // Initialize game only once when component mounts
   useEffect(() => {
     if (!gameInitializedRef.current) {
-      initGameLevel(0);
+      // Start at level 0 (first level) unless we have saved progress
+      const levelToStart = Math.max(0, gameState.level - 1);
+      initGameLevel(levelToStart);
       gameInitializedRef.current = true;
     }
-  }, [initGameLevel, gameInitializedRef]);
+  }, [initGameLevel, gameInitializedRef, gameState.level]);
   
   return {
     gameState,

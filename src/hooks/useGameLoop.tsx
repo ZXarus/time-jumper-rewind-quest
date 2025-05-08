@@ -14,11 +14,15 @@ export const useGameLoop = (
   const frameCountRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const gameInitializedRef = useRef<boolean>(false);
+  const lastUpdateTimeRef = useRef<number>(0);
+  const FPS_CAP = 60;
+  const FRAME_TIME = 1000 / FPS_CAP;
   
   // Main game loop
   const gameLoop = useCallback((timestamp: number) => {
     if (!lastTimeRef.current) {
       lastTimeRef.current = timestamp;
+      lastUpdateTimeRef.current = timestamp;
     }
     
     const deltaTime = timestamp - lastTimeRef.current;
@@ -30,17 +34,25 @@ export const useGameLoop = (
       return;
     }
     
-    // Increase frame counter
-    frameCountRef.current += 1;
+    // Use a consistent update rate for physics to ensure stable behavior
+    const timeSinceLastUpdate = timestamp - lastUpdateTimeRef.current;
     
-    // Update player physics based on controls
-    updatePlayerPhysics(controls, gameState);
-    
-    // Update game elements (platforms, enemies)
-    updateGameElements(timestamp);
-    
-    // Check for collisions
-    checkCollisions();
+    if (timeSinceLastUpdate >= FRAME_TIME) {
+      // Increase frame counter
+      frameCountRef.current += 1;
+      
+      // Update player physics based on controls
+      updatePlayerPhysics(controls, gameState);
+      
+      // Update game elements (platforms, enemies)
+      updateGameElements(timestamp);
+      
+      // Check for collisions
+      checkCollisions();
+      
+      // Update last update time
+      lastUpdateTimeRef.current = timestamp - (timeSinceLastUpdate % FRAME_TIME);
+    }
     
     frameRef.current = requestAnimationFrame(gameLoop);
   }, [controls, gameState, updatePlayerPhysics, updateGameElements, checkCollisions]);

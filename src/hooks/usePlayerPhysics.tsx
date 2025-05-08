@@ -34,6 +34,9 @@ export const usePlayerPhysics = (
       return;
     }
     
+    // Increment frame count for smoother animations and physics calculations
+    actualFrameCountRef.current += 1;
+    
     // Update player state based on current state and inputs
     setPlayer(prevPlayer => {
       // Handle rewinding time
