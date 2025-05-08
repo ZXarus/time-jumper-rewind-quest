@@ -17,6 +17,13 @@ export interface GameState {
   score: number;
 }
 
+export interface GameControls {
+  left: boolean;
+  right: boolean;
+  jump: boolean;
+  rewind: boolean;
+}
+
 export interface TimePosition extends Position {
   timestamp: number;
 }
