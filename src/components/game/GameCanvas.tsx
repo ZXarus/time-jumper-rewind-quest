@@ -5,13 +5,14 @@ import Platform from "@/components/game/Platform";
 import Enemy from "@/components/game/Enemy";
 import Hazard from "@/components/game/Hazard";
 import EnergyOrb from "@/components/game/EnergyOrb";
+import EnergyBooster from "@/components/game/EnergyBooster";
 import EnergyMeter from "@/components/game/EnergyMeter";
 import GameStatus from "@/components/game/GameStatus";
 import SoundControl from "@/components/game/SoundControl";
 import ParticleEffect from "@/components/game/ParticleEffect";
 import RestartButton from "@/components/game/RestartButton";
 import { GAME_WIDTH, GAME_HEIGHT, GROUND_HEIGHT, COLORS } from "@/constants/gameConstants";
-import { Position, PlayerState, GameState, Level, Platform as PlatformType, Enemy as EnemyType, Hazard as HazardType, EnergyOrb as EnergyOrbType } from "@/types/game";
+import { Position, PlayerState, GameState, Level, Platform as PlatformType, Enemy as EnemyType, Hazard as HazardType, EnergyOrb as EnergyOrbType, EnergyBooster as EnergyBoosterType } from "@/types/game";
 
 interface GameCanvasProps {
   gameState: GameState;
@@ -20,6 +21,7 @@ interface GameCanvasProps {
   enemies: EnemyType[];
   hazards: HazardType[];
   energyOrbs: EnergyOrbType[];
+  energyBoosters: EnergyBoosterType[];
   currentLevel: Level;
   showParticles: {
     jump: boolean;
@@ -38,6 +40,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   enemies,
   hazards,
   energyOrbs,
+  energyBoosters,
   currentLevel,
   showParticles,
   resetLevel,
@@ -118,22 +121,27 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
       
       {/* Platforms */}
       {platforms.map((platform, index) => (
-        <Platform key={`platform-${index}`} platform={platform} />
+        <Platform key={`platform-${platform.id || index}`} platform={platform} />
       ))}
       
       {/* Energy orbs */}
       {energyOrbs.map((orb, index) => (
-        <EnergyOrb key={`orb-${index}`} energyOrb={orb} />
+        <EnergyOrb key={`orb-${orb.id || index}`} energyOrb={orb} />
+      ))}
+      
+      {/* Energy boosters */}
+      {energyBoosters && energyBoosters.map((booster, index) => (
+        <EnergyBooster key={`booster-${booster.id || index}`} energyBooster={booster} />
       ))}
       
       {/* Hazards */}
       {hazards.map((hazard, index) => (
-        <Hazard key={`hazard-${index}`} hazard={hazard} />
+        <Hazard key={`hazard-${hazard.id || index}`} hazard={hazard} />
       ))}
       
       {/* Enemies */}
       {enemies.map((enemy, index) => (
-        <Enemy key={`enemy-${index}`} enemy={enemy} />
+        <Enemy key={`enemy-${enemy.id || index}`} enemy={enemy} />
       ))}
       
       {/* Player */}

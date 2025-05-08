@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 // Import custom hooks
@@ -15,6 +15,14 @@ export const useGame = () => {
   // Create a ref for frame count that can be passed to the player physics hook
   const frameCountRef = useRef<number>(0);
   
+  // Track particle effects
+  const [showParticles, setShowParticles] = useState({
+    jump: false,
+    collect: false,
+    rewind: false,
+    death: false
+  });
+  
   // Initialize player physics
   const { player, setPlayer, updatePlayerPhysics } = usePlayerPhysics(frameCountRef);
   
@@ -23,9 +31,9 @@ export const useGame = () => {
   
   // Initialize game elements
   const { 
-    platforms, enemies, hazards, energyOrbs, 
-    setEnergyOrbs, updateGameElements, loadLevelElements,
-    setPlatforms, setEnemies, setHazards
+    platforms, enemies, hazards, energyOrbs, energyBoosters,
+    setEnergyOrbs, setEnergyBoosters, updateGameElements, loadLevelElements,
+    updatePlayerPlatform
   } = useGameElements();
   
   // Initialize level manager
@@ -40,7 +48,21 @@ export const useGame = () => {
       ...prev,
       gameOver: true
     }));
+    
+    setShowParticles(prev => ({
+      ...prev,
+      death: true
+    }));
+    
     toast("Game Over! Try again!");
+    
+    // Hide death particles after animation
+    setTimeout(() => {
+      setShowParticles(prev => ({
+        ...prev,
+        death: false
+      }));
+    }, 1000);
   }, [setGameState]);
   
   const handleVictory = useCallback(() => {
@@ -49,13 +71,28 @@ export const useGame = () => {
       victory: true,
       score: prev.score + 100,
     }));
+    
+    setShowParticles(prev => ({
+      ...prev,
+      collect: true
+    }));
+    
     toast("Level Complete!");
+    
+    // Hide collect particles after animation
+    setTimeout(() => {
+      setShowParticles(prev => ({
+        ...prev,
+        collect: false
+      }));
+    }, 1000);
   }, [setGameState]);
   
   // Initialize collision detection
   const { checkCollisions } = useCollisionDetection(
     player, setPlayer, platforms, enemies, hazards,
-    energyOrbs, setEnergyOrbs, currentLevel, gameState,
+    energyOrbs, energyBoosters, setEnergyOrbs, setEnergyBoosters,
+    updatePlayerPlatform, currentLevel, gameState,
     setGameState, handleGameOver, handleVictory, handleEmergencyRewind
   );
   
@@ -66,14 +103,51 @@ export const useGame = () => {
   useEffect(() => {
     if (controls.rewind && player.energy > 0 && player.timePositions.length > 0) {
       handleRewind(true);
+      
+      // Show rewind particles
+      setShowParticles(prev => ({
+        ...prev,
+        rewind: true
+      }));
+      
+      // Hide rewind particles after animation
+      setTimeout(() => {
+        setShowParticles(prev => ({
+          ...prev,
+          rewind: false
+        }));
+      }, 500);
     }
   }, [controls.rewind, player.energy, player.timePositions.length, handleRewind]);
+  
+  // Show jump particles when jumping
+  useEffect(() => {
+    if (player.isJumping && player.velocity.y < 0 && !showParticles.jump) {
+      setShowParticles(prev => ({
+        ...prev,
+        jump: true
+      }));
+      
+      // Hide jump particles after animation
+      setTimeout(() => {
+        setShowParticles(prev => ({
+          ...prev,
+          jump: false
+        }));
+      }, 300);
+    }
+  }, [player.isJumping, player.velocity.y, showParticles.jump]);
+  
+  // Update game elements with player position for moving platforms
+  const updateGameElementsWithPlayer = useCallback((timestamp: number) => {
+    updateGameElements(timestamp, player);
+  }, [updateGameElements, player]);
   
   // Initialize game loop
   const { gameInitializedRef } = useGameLoop(
     gameState, 
     updatePlayerPhysics,
-    updateGameElements,
+    updateGameElementsWithPlayer,
     checkCollisions,
     controls
   );
@@ -95,7 +169,9 @@ export const useGame = () => {
     enemies,
     hazards,
     energyOrbs,
+    energyBoosters,
     currentLevel,
+    showParticles,
     resetLevel,
     nextLevel,
   };

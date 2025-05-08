@@ -1,5 +1,5 @@
 
-import { PlayerState, Platform, Enemy, Hazard, EnergyOrb, Level } from "@/types/game";
+import { PlayerState, Platform, Enemy, Hazard, EnergyOrb, Level, EnergyBooster } from "@/types/game";
 import { checkCollision, getPlayerRect } from "./gamePhysics";
 import { toast } from "sonner";
 import { findSafePosition } from "./timeRewind";
@@ -8,31 +8,66 @@ import { findSafePosition } from "./timeRewind";
 export const handlePlatformCollisions = (
   player: PlayerState, 
   platforms: Platform[]
-): { newPlayerState: Partial<PlayerState>, isGrounded: boolean } => {
+): { newPlayerState: Partial<PlayerState>, isGrounded: boolean, platformId?: string } => {
   let isGrounded = false;
   let newPosition = { ...player.position };
+  let platformId: string | undefined;
   
   for (const platform of platforms) {
     // Create larger hitbox for platform top for better platform detection
     const platformTopHitbox = {
-      x: platform.x,
-      y: platform.y - 5, // Slightly above platform
-      width: platform.width,
-      height: 10
+      x: platform.x + 2, // Adding slight margin for better collision
+      y: platform.y - 8, // Slightly above platform for more forgiving detection
+      width: platform.width - 4,
+      height: 16 // Taller hitbox to catch collisions earlier
     };
     
     const playerBottomHitbox = {
       x: player.position.x + 2,
-      y: player.position.y + player.height - 5,
+      y: player.position.y + player.height - 10,
       width: player.width - 4,
-      height: 10
+      height: 15
     };
     
     // Check if player is on top of a platform
     if (checkCollision(playerBottomHitbox, platformTopHitbox) && player.velocity.y >= 0) {
       newPosition.y = platform.y - player.height;
       isGrounded = true;
+      platformId = platform.id;
       break;
+    }
+    
+    // Check side collisions to prevent getting stuck inside platforms
+    const platformRect = { 
+      x: platform.x, 
+      y: platform.y, 
+      width: platform.width, 
+      height: platform.height 
+    };
+    
+    const playerRect = getPlayerRect(player);
+    
+    // Only check side collisions if we're not already grounded from above
+    if (!isGrounded && checkCollision(playerRect, platformRect)) {
+      // Determine if this is a side collision
+      const playerBottom = player.position.y + player.height;
+      const platformTop = platform.y;
+      
+      // If bottom of player is below top of platform by more than a threshold, 
+      // it's likely a side collision
+      if (playerBottom - platformTop > 10) {
+        // Determine which side of the platform we're colliding with
+        const playerRight = player.position.x + player.width;
+        const platformRight = platform.x + platform.width;
+        
+        if (player.velocity.x > 0 && Math.abs(playerRight - platform.x) < Math.abs(player.position.x - platformRight)) {
+          // Hitting left side of platform
+          newPosition.x = platform.x - player.width;
+        } else if (player.velocity.x < 0) {
+          // Hitting right side of platform
+          newPosition.x = platform.x + platform.width;
+        }
+      }
     }
   }
   
@@ -40,10 +75,11 @@ export const handlePlatformCollisions = (
     newPlayerState: {
       position: newPosition,
       velocity: isGrounded ? { ...player.velocity, y: 0 } : player.velocity,
-      isGrounded: isGrounded,
+      isGrounded,
       isJumping: isGrounded ? false : player.isJumping
     },
-    isGrounded
+    isGrounded,
+    platformId
   };
 };
 
@@ -114,7 +150,7 @@ export const collectEnergyOrbs = (
   const playerRect = getPlayerRect(player);
 
   const updatedOrbs = energyOrbs.map(orb => {
-    if (!orb.collected && checkCollision(playerRect, { x: orb.x, y: orb.y, width: 10, height: 10 })) {
+    if (!orb.collected && checkCollision(playerRect, { x: orb.x, y: orb.y, width: 15, height: 15 })) {
       scoreIncrease += 10;
       energyIncrease += 20;
       toast("Energy orb collected!");
@@ -128,6 +164,26 @@ export const collectEnergyOrbs = (
   }
   
   return { updatedOrbs, energyIncrease };
+};
+
+// Handle energy booster collection
+export const collectEnergyBoosters = (
+  player: PlayerState,
+  boosters: EnergyBooster[],
+): { updatedBoosters: EnergyBooster[], energyIncrease: number } => {
+  let energyIncrease = 0;
+  const playerRect = getPlayerRect(player);
+
+  const updatedBoosters = boosters.map(booster => {
+    if (!booster.collected && checkCollision(playerRect, { x: booster.x, y: booster.y, width: 25, height: 25 })) {
+      energyIncrease += 50; // Boosters give more energy than orbs
+      toast("Energy booster collected! +50 energy!");
+      return { ...booster, collected: true };
+    }
+    return booster;
+  });
+  
+  return { updatedBoosters, energyIncrease };
 };
 
 // Check if player reached level end

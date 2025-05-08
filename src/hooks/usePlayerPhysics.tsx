@@ -18,8 +18,9 @@ export const usePlayerPhysics = (
     jumpBufferTime: 0,
     jumpBufferDuration: 150, // ms to buffer jump input
     coyoteTime: 0,
-    coyoteTimeDuration: 100, // ms of coyote time
-    wasGrounded: false
+    coyoteTimeDuration: 150, // ms of coyote time (increased from 100)
+    wasGrounded: false,
+    lastUpdateTime: 0
   });
   
   const [player, setPlayer] = useState<PlayerState>({
@@ -46,6 +47,13 @@ export const usePlayerPhysics = (
     
     // Track current time for input buffering
     const now = performance.now();
+    
+    // Throttle physics updates to avoid micro-stuttering
+    const updateRate = 16; // ~60 FPS
+    if (now - inputBufferRef.current.lastUpdateTime < updateRate && inputBufferRef.current.lastUpdateTime !== 0) {
+      return;
+    }
+    inputBufferRef.current.lastUpdateTime = now;
     
     // Jump buffer - allow jump input to be registered slightly before landing
     if (controls.jump) {
@@ -136,15 +144,13 @@ export const usePlayerPhysics = (
       if (newPosition.y < 0) {
         newPosition.y = 0;
         newVelocity.y = 0;
-      } else if (newPosition.y + prevPlayer.height > 500) { // GAME_HEIGHT
-        // Player fell off the screen
-        return {
-          ...prevPlayer,
-          isDead: true,
-          isRewinding: false,
-          energy: newEnergy,
-          timePositions: newTimePositions
-        };
+      }
+      
+      // The floor is now a solid boundary, player can't fall through
+      if (newPosition.y + prevPlayer.height > 500 - 20) { // GAME_HEIGHT - GROUND_HEIGHT
+        newPosition.y = 500 - 20 - prevPlayer.height;
+        newVelocity.y = 0;
+        movementResult.isGrounded = true;
       }
       
       return {

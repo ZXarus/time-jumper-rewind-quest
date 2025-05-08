@@ -25,7 +25,7 @@ export const getPlayerRect = (player: PlayerState) => {
   };
 };
 
-// Apply movement based on controls
+// Apply movement based on controls with improved platform handling
 export const applyMovement = (
   position: Position, 
   velocity: { x: number, y: number },
@@ -36,7 +36,7 @@ export const applyMovement = (
   let newVelocity = { ...velocity };
   let newFacingDirection: 'left' | 'right' = velocity.x < 0 ? 'left' : 'right';
   
-  // Apply horizontal movement
+  // Apply horizontal movement with improved responsiveness
   if (controls.left) {
     newVelocity.x = -PLAYER_SPEED;
     newFacingDirection = 'left';
@@ -44,17 +44,18 @@ export const applyMovement = (
     newVelocity.x = PLAYER_SPEED;
     newFacingDirection = 'right';
   } else {
-    // Apply friction
-    newVelocity.x *= 0.8;
+    // Apply friction - less friction when in air
+    const frictionFactor = isGrounded ? 0.8 : 0.95;
+    newVelocity.x *= frictionFactor;
     if (Math.abs(newVelocity.x) < 0.1) newVelocity.x = 0;
   }
   
-  // Apply jumping
+  // Apply jumping with improved feel
   if (controls.jump && isGrounded && !isJumping) {
     newVelocity.y = JUMP_FORCE;
     isGrounded = false;
   } else {
-    // Apply gravity
+    // Apply gravity with terminal velocity
     newVelocity.y += GRAVITY;
     
     // Limit fall speed
@@ -85,8 +86,8 @@ export const applyMovement = (
   };
 };
 
-// Update moving platforms
-export const updatePlatforms = (platforms: Platform[]) => {
+// Update moving platforms with smoother movement and better player interaction
+export const updatePlatforms = (platforms: Platform[], playerOnPlatform?: {platformId: string, playerState: PlayerState}) => {
   return platforms.map(platform => {
     if (platform.type !== 'moving' || !platform.direction || 
         !platform.speed || !platform.range || !platform.initialPosition) {
@@ -96,7 +97,7 @@ export const updatePlatforms = (platforms: Platform[]) => {
     let newX = platform.x;
     let newY = platform.y;
     
-    // Calculate movement based on direction
+    // Calculate movement based on direction with smoother transitions
     if (platform.direction === 'horizontal') {
       const maxOffset = platform.range / 2;
       const centerX = platform.initialPosition.x;
@@ -121,6 +122,12 @@ export const updatePlatforms = (platforms: Platform[]) => {
       newY += platform.speed;
     }
     
+    // If player is on this platform, move them with the platform
+    if (playerOnPlatform && playerOnPlatform.platformId === platform.id) {
+      playerOnPlatform.playerState.position.x += platform.direction === 'horizontal' ? platform.speed : 0;
+      playerOnPlatform.playerState.position.y += platform.direction === 'vertical' ? platform.speed : 0;
+    }
+    
     return {
       ...platform,
       x: newX,
@@ -129,7 +136,7 @@ export const updatePlatforms = (platforms: Platform[]) => {
   });
 };
 
-// Update enemy positions
+// Update enemy positions with improved movement
 export const updateEnemies = (enemies: Enemy[], timestamp: number) => {
   return enemies.map(enemy => {
     if (!enemy.range || !enemy.initialPosition) {

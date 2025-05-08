@@ -12,6 +12,20 @@ interface PlayerProps {
 const Player: React.FC<PlayerProps> = ({ player, isRewinding }) => {
   const { position, width, height, facingDirection, isDead, timePositions } = player;
   const playerRef = useRef<HTMLDivElement>(null);
+  const lastMoveRef = useRef<string>('idle');
+  const movingRef = useRef<boolean>(false);
+  
+  // Track player movement state for animations
+  useEffect(() => {
+    const currentDirection = player.velocity.x !== 0 ? 
+      (player.velocity.x > 0 ? 'right' : 'left') : 'idle';
+    
+    if (currentDirection !== lastMoveRef.current) {
+      lastMoveRef.current = currentDirection;
+    }
+    
+    movingRef.current = player.velocity.x !== 0;
+  }, [player.velocity.x]);
 
   // Add time trail effect when rewinding
   useEffect(() => {
@@ -62,12 +76,13 @@ const Player: React.FC<PlayerProps> = ({ player, isRewinding }) => {
           width: width,
           height: height,
           transform: facingDirection === "left" ? "scaleX(-1)" : "none",
+          transition: "transform 0.1s ease"
         }}
       >
         {/* Enhanced realistic human character */}
         <div className="absolute w-full h-full flex flex-col items-center">
           {/* Detailed Head */}
-          <div className="w-[60%] h-[30%] bg-[#FFE0C9] rounded-full relative mt-[1px] shadow-md">
+          <div className="w-[60%] h-[30%] bg-[#FFE0C9] rounded-full relative mt-[1px] shadow-md overflow-hidden">
             {/* Hair with better styling and shading */}
             <div className="absolute w-[100%] h-[60%] bg-gradient-to-b from-[#4A2F1D] to-[#724128] rounded-t-full top-[-4px] overflow-hidden">
               {/* Hair texture with highlights */}
@@ -106,8 +121,9 @@ const Player: React.FC<PlayerProps> = ({ player, isRewinding }) => {
                 <div className="absolute w-full h-full bg-[#FFE0C9] animate-blink opacity-0"></div>
               </div>
               
-              {/* Nose */}
+              {/* Nose with better shading */}
               <div className="absolute top-[55%] left-[48%] w-[4%] h-[10%] bg-[#E8CBAE] rounded-full"></div>
+              <div className="absolute top-[58%] left-[47%] w-[6%] h-[3%] bg-[#E8CBAE] rounded-full opacity-60"></div>
               
               {/* Mouth - changes based on state with realistic shape */}
               <div className={`absolute bottom-[20%] left-[35%] w-[30%] h-[7%] rounded-full overflow-hidden 
@@ -145,14 +161,41 @@ const Player: React.FC<PlayerProps> = ({ player, isRewinding }) => {
             <div className="absolute top-[10%] right-[-8%] w-[15%] h-[20%] bg-[#4077C5] rounded-full"></div>
           </div>
           
-          {/* Enhanced Arms with better proportions and details */}
-          <div className="flex w-[100%] justify-between mt-[-26px] relative z-10">
-            <div className="w-[18%] h-[30px] bg-gradient-to-b from-[#FFE0C9] to-[#FFCFB0] rounded-bl-full shadow-md"></div>
-            <div className="w-[18%] h-[30px] bg-gradient-to-b from-[#FFE0C9] to-[#FFCFB0] rounded-br-full shadow-md"></div>
+          {/* Enhanced Arms with better proportions and details - now with animation */}
+          <div className={`flex w-[100%] justify-between mt-[-26px] relative z-10 ${movingRef.current ? 'animate-armSwing' : ''}`}>
+            {/* Left arm with animation */}
+            <div className="w-[18%] h-[30px] relative">
+              {/* Upper arm */}
+              <div className="absolute left-0 top-0 w-full h-[15px] bg-[#4077C5] rounded-full shadow-inner transform origin-top"></div>
+              {/* Lower arm and hand */}
+              <div className={`absolute left-0 bottom-0 w-full h-[20px] flex ${player.isJumping ? 'rotate-12' : ''}`}>
+                <div className="w-3/4 h-full bg-gradient-to-b from-[#FFE0C9] to-[#FFCFB0] rounded-bl-full shadow-md"></div>
+                {/* Hand with fingers */}
+                <div className="w-1/4 h-full bg-[#FFCFB0] rounded-br-full relative">
+                  <div className="absolute bottom-0 right-[2px] w-[3px] h-[6px] bg-[#FFCFB0] rounded-full"></div>
+                  <div className="absolute bottom-[3px] right-[1px] w-[2px] h-[5px] bg-[#FFCFB0] rounded-full"></div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Right arm with animation */}
+            <div className="w-[18%] h-[30px] relative">
+              {/* Upper arm */}
+              <div className="absolute right-0 top-0 w-full h-[15px] bg-[#4077C5] rounded-full shadow-inner transform origin-top"></div>
+              {/* Lower arm and hand */}
+              <div className={`absolute right-0 bottom-0 w-full h-[20px] flex flex-row-reverse ${player.isJumping ? '-rotate-12' : ''}`}>
+                <div className="w-3/4 h-full bg-gradient-to-b from-[#FFE0C9] to-[#FFCFB0] rounded-br-full shadow-md"></div>
+                {/* Hand with fingers */}
+                <div className="w-1/4 h-full bg-[#FFCFB0] rounded-bl-full relative">
+                  <div className="absolute bottom-0 left-[2px] w-[3px] h-[6px] bg-[#FFCFB0] rounded-full"></div>
+                  <div className="absolute bottom-[3px] left-[1px] w-[2px] h-[5px] bg-[#FFCFB0] rounded-full"></div>
+                </div>
+              </div>
+            </div>
           </div>
           
-          {/* Enhanced Legs - pants with realistic details */}
-          <div className="flex w-full mt-[-5px]">
+          {/* Enhanced Legs - pants with realistic details and movement animation */}
+          <div className={`flex w-full mt-[-5px] ${movingRef.current ? 'animate-legWalk' : ''}`}>
             <div className="w-1/2 h-[35%] bg-gradient-to-b from-[#2D3447] to-[#232A3D] rounded-b-lg mr-[1px] relative shadow-md">
               <div className="absolute bottom-[30%] left-[20%] w-[60%] h-[1px] bg-[#1E2333]"></div>
               <div className="absolute bottom-[60%] left-[20%] w-[60%] h-[1px] bg-[#1E2333]"></div>
@@ -165,8 +208,12 @@ const Player: React.FC<PlayerProps> = ({ player, isRewinding }) => {
           
           {/* Enhanced Shoes with better design */}
           <div className="flex w-[90%] mt-[-2px]">
-            <div className="w-1/2 h-[12px] bg-gradient-to-b from-[#21242C] to-[#17191F] rounded-b-lg mr-[2px] shadow-md"></div>
-            <div className="w-1/2 h-[12px] bg-gradient-to-b from-[#21242C] to-[#17191F] rounded-b-lg ml-[2px] shadow-md"></div>
+            <div className="w-1/2 h-[12px] bg-gradient-to-b from-[#21242C] to-[#17191F] rounded-b-lg mr-[2px] shadow-md">
+              <div className="h-[3px] w-3/4 bg-[#111] rounded-b-lg mt-[2px] mx-auto"></div>
+            </div>
+            <div className="w-1/2 h-[12px] bg-gradient-to-b from-[#21242C] to-[#17191F] rounded-b-lg ml-[2px] shadow-md">
+              <div className="h-[3px] w-3/4 bg-[#111] rounded-b-lg mt-[2px] mx-auto"></div>
+            </div>
           </div>
         </div>
 

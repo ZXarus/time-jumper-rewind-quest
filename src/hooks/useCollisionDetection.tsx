@@ -1,7 +1,7 @@
 
 import { useCallback } from "react";
-import { PlayerState, Platform, Enemy, Hazard, EnergyOrb, Level, GameState } from "@/types/game";
-import { handlePlatformCollisions, handleDangerCollisions, collectEnergyOrbs, checkLevelCompletion } from "@/utils/collisionDetection";
+import { PlayerState, Platform, Enemy, Hazard, EnergyOrb, Level, GameState, EnergyBooster } from "@/types/game";
+import { handlePlatformCollisions, handleDangerCollisions, collectEnergyOrbs, collectEnergyBoosters, checkLevelCompletion } from "@/utils/collisionDetection";
 
 export const useCollisionDetection = (
   player: PlayerState,
@@ -10,7 +10,10 @@ export const useCollisionDetection = (
   enemies: Enemy[],
   hazards: Hazard[],
   energyOrbs: EnergyOrb[],
+  energyBoosters: EnergyBooster[],
   setEnergyOrbs: (updater: React.SetStateAction<EnergyOrb[]>) => void,
+  setEnergyBoosters: (updater: React.SetStateAction<EnergyBooster[]>) => void,
+  updatePlayerPlatform: (platformId?: string) => void,
   currentLevel: Level,
   gameState: GameState,
   setGameState: (updater: React.SetStateAction<GameState>) => void,
@@ -24,15 +27,19 @@ export const useCollisionDetection = (
       return;
     }
     
-    // Platform collisions
+    // Platform collisions - now returns platformId if player is standing on a platform
     const platformResult = handlePlatformCollisions(player, platforms);
     if (platformResult.isGrounded !== player.isGrounded || 
-        platformResult.newPlayerState.position?.y !== player.position.y) {
+        platformResult.newPlayerState.position?.y !== player.position.y ||
+        platformResult.newPlayerState.position?.x !== player.position.x) {
       setPlayer(prev => ({
         ...prev,
         ...platformResult.newPlayerState
       }));
     }
+    
+    // Update which platform the player is standing on (for moving platforms)
+    updatePlayerPlatform(platformResult.platformId);
     
     // Enemy and hazard collisions
     const dangerResult = handleDangerCollisions(player, enemies, hazards, handleGameOver);
@@ -68,6 +75,17 @@ export const useCollisionDetection = (
       setEnergyOrbs(orbResult.updatedOrbs);
     }
     
+    // Energy booster collection
+    const boosterResult = collectEnergyBoosters(player, energyBoosters);
+    
+    if (boosterResult.energyIncrease > 0) {
+      setPlayer(prev => ({
+        ...prev,
+        energy: Math.min(prev.maxEnergy, prev.energy + boosterResult.energyIncrease)
+      }));
+      setEnergyBoosters(boosterResult.updatedBoosters);
+    }
+    
     // Check victory condition (player reached end position)
     checkLevelCompletion(player, currentLevel.endPosition, handleVictory);
   }, [
@@ -75,12 +93,15 @@ export const useCollisionDetection = (
     platforms, 
     enemies, 
     hazards, 
-    energyOrbs, 
+    energyOrbs,
+    energyBoosters, 
     currentLevel, 
     gameState,
     setPlayer,
     setEnergyOrbs,
+    setEnergyBoosters,
     setGameState,
+    updatePlayerPlatform,
     handleGameOver,
     handleVictory,
     handleEmergencyRewind

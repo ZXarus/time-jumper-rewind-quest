@@ -71,8 +71,47 @@ export const useLevelManager = (
     
     const level = levels[levelIndex];
     
-    setCurrentLevel(level);
-    loadLevelElements(level);
+    // Ensure all platforms have IDs (needed for moving platform tracking)
+    const platformsWithIds = level.platforms.map((platform, index) => {
+      if (!platform.id) {
+        return {...platform, id: `p-${levelIndex}-${index}`};
+      }
+      return platform;
+    });
+    
+    // Add some energy boosters if not present
+    let levelEnergyBoosters = level.energyBoosters || [];
+    if (!level.energyBoosters || level.energyBoosters.length === 0) {
+      // Add 1-2 energy boosters at strategic locations
+      levelEnergyBoosters = [
+        {
+          x: level.startPosition.x + 200,
+          y: level.startPosition.y - 100,
+          collected: false,
+          id: `eb-${levelIndex}-1`
+        }
+      ];
+      
+      // Add a second one for longer levels
+      if (Math.abs(level.endPosition.x - level.startPosition.x) > 400) {
+        levelEnergyBoosters.push({
+          x: (level.startPosition.x + level.endPosition.x) / 2,
+          y: Math.min(level.startPosition.y, level.endPosition.y) - 50,
+          collected: false,
+          id: `eb-${levelIndex}-2`
+        });
+      }
+    }
+    
+    // Updated level with IDs and energy boosters
+    const updatedLevel = {
+      ...level,
+      platforms: platformsWithIds,
+      energyBoosters: levelEnergyBoosters
+    };
+    
+    setCurrentLevel(updatedLevel);
+    loadLevelElements(updatedLevel);
     
     setPlayer({
       position: { ...level.startPosition },

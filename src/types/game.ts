@@ -1,4 +1,3 @@
-
 export interface Position {
   x: number;
   y: number;
@@ -74,15 +73,21 @@ export interface EnergyOrb {
   collected: boolean;
 }
 
+export interface EnergyBooster {
+  x: number;
+  y: number;
+  collected: boolean;
+  id?: string;
+}
+
 export interface Level {
-  width: number;
-  height: number;
-  startPosition: Position;
-  endPosition: Position;
   platforms: Platform[];
   enemies: Enemy[];
   hazards: Hazard[];
   energyOrbs: EnergyOrb[];
+  energyBoosters?: EnergyBooster[]; // Added energy boosters to levels
+  startPosition: Position;
+  endPosition: Position;
 }
 
 export interface GameControls {
