@@ -6,22 +6,20 @@ const PLATFORM_HEIGHT = 20;
 
 // Level 2 - More challenges
 export const level2: Level = {
-  width: GAME_WIDTH,
-  height: GAME_HEIGHT,
   startPosition: { x: 50, y: 400 },
   endPosition: { x: 750, y: 100 },
   platforms: [
     // Starting platform
-    { x: 0, y: 450, width: 150, height: PLATFORM_HEIGHT, type: "normal" },
+    { x: 0, y: 450, width: 150, height: PLATFORM_HEIGHT, type: "normal", id: "p2-1" },
     
     // Mid platforms
-    { x: 200, y: 400, width: 100, height: PLATFORM_HEIGHT, type: "crumbling" },
-    { x: 350, y: 350, width: 100, height: PLATFORM_HEIGHT, type: "normal" },
-    { x: 500, y: 300, width: 80, height: PLATFORM_HEIGHT, type: "crumbling" },
-    { x: 630, y: 250, width: 80, height: PLATFORM_HEIGHT, type: "normal" },
+    { x: 200, y: 400, width: 100, height: PLATFORM_HEIGHT, type: "crumbling", id: "p2-2" },
+    { x: 350, y: 350, width: 100, height: PLATFORM_HEIGHT, type: "normal", id: "p2-3" },
+    { x: 500, y: 300, width: 80, height: PLATFORM_HEIGHT, type: "crumbling", id: "p2-4" },
+    { x: 630, y: 250, width: 80, height: PLATFORM_HEIGHT, type: "normal", id: "p2-5" },
     
     // End platform
-    { x: 720, y: 150, width: 80, height: PLATFORM_HEIGHT, type: "normal" },
+    { x: 720, y: 150, width: 80, height: PLATFORM_HEIGHT, type: "normal", id: "p2-6" },
     
     // Moving platforms
     {
@@ -33,7 +31,8 @@ export const level2: Level = {
       direction: "vertical",
       speed: 1,
       range: 100,
-      initialPosition: { x: 150, y: 300 }
+      initialPosition: { x: 150, y: 300 },
+      id: "p2-7"
     },
     {
       x: 450, 
@@ -44,7 +43,8 @@ export const level2: Level = {
       direction: "horizontal",
       speed: 2,
       range: 100,
-      initialPosition: { x: 450, y: 200 }
+      initialPosition: { x: 450, y: 200 },
+      id: "p2-8"
     }
   ],
   enemies: [
@@ -57,7 +57,8 @@ export const level2: Level = {
       direction: "right",
       speed: 1.5,
       range: 80,
-      initialPosition: { x: 380, y: 320 }
+      initialPosition: { x: 380, y: 320 },
+      id: "e2-1"
     },
     {
       x: 650, 
@@ -68,18 +69,22 @@ export const level2: Level = {
       direction: "left",
       speed: 1,
       range: 50,
-      initialPosition: { x: 650, y: 220 }
+      initialPosition: { x: 650, y: 220 },
+      id: "e2-2"
     }
   ],
   hazards: [
-    { x: 290, y: 440, width: 220, height: 10, type: "spike" },
-    { x: 550, y: 440, width: 160, height: 10, type: "spike" },
-    { x: 600, y: 340, width: 30, height: 100, type: "laser" }
+    { x: 290, y: 440, width: 220, height: 10, type: "spike", id: "h2-1" },
+    { x: 550, y: 440, width: 160, height: 10, type: "spike", id: "h2-2" },
+    { x: 600, y: 340, width: 30, height: 100, type: "laser", id: "h2-3" }
   ],
   energyOrbs: [
-    { x: 250, y: 370, collected: false },
-    { x: 450, y: 270, collected: false },
-    { x: 580, y: 220, collected: false },
-    { x: 700, y: 120, collected: false }
+    { x: 250, y: 370, collected: false, id: "o2-1" },
+    { x: 450, y: 270, collected: false, id: "o2-2" },
+    { x: 580, y: 220, collected: false, id: "o2-3" },
+    { x: 700, y: 120, collected: false, id: "o2-4" }
+  ],
+  energyBoosters: [
+    { x: 300, y: 320, collected: false, id: "eb2-1" }
   ]
 };

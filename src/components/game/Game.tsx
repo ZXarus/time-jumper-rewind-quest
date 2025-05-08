@@ -15,17 +15,12 @@ const Game = () => {
     enemies, 
     hazards,
     energyOrbs,
+    energyBoosters, // Make sure to get energyBoosters from useGame hook
     currentLevel,
+    showParticles,
     resetLevel, 
     nextLevel 
   } = useGame();
-
-  const [showParticles, setShowParticles] = useState({
-    jump: false,
-    collect: false,
-    rewind: false,
-    death: false
-  });
   
   // Play background music based on level
   useEffect(() => {
@@ -42,23 +37,16 @@ const Game = () => {
     // Play jump sound when player jumps
     if (player.velocity.y < -1 && player.isGrounded === false) {
       playSoundEffect('jump');
-      setShowParticles(prev => ({ ...prev, jump: true }));
-      setTimeout(() => setShowParticles(prev => ({ ...prev, jump: false })), 200);
     }
     
     // Play rewind sounds
     if (player.isRewinding) {
       playSoundEffect('rewind');
-      setShowParticles(prev => ({ ...prev, rewind: true }));
-    } else {
-      setShowParticles(prev => ({ ...prev, rewind: false }));
     }
     
     // Play death sound
     if (player.isDead) {
       playSoundEffect('death');
-      setShowParticles(prev => ({ ...prev, death: true }));
-      setTimeout(() => setShowParticles(prev => ({ ...prev, death: false })), 500);
     }
     
   }, [player.velocity.y, player.isGrounded, player.isRewinding, player.isDead]);
@@ -67,8 +55,6 @@ const Game = () => {
   useEffect(() => {
     if (gameState.victory) {
       playSoundEffect('levelComplete');
-      setShowParticles(prev => ({ ...prev, collect: true }));
-      setTimeout(() => setShowParticles(prev => ({ ...prev, collect: false })), 1000);
     }
   }, [gameState.victory]);
   
@@ -92,6 +78,7 @@ const Game = () => {
           enemies={enemies}
           hazards={hazards}
           energyOrbs={energyOrbs}
+          energyBoosters={energyBoosters} // Pass energyBoosters to GameCanvas
           currentLevel={currentLevel}
           showParticles={showParticles}
           resetLevel={resetLevel}

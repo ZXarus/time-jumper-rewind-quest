@@ -169,9 +169,9 @@ export const useGame = () => {
     enemies,
     hazards,
     energyOrbs,
-    energyBoosters,
+    energyBoosters, // Make sure energyBoosters is exported
     currentLevel,
-    showParticles,
+    showParticles, // Make sure showParticles is exported
     resetLevel,
     nextLevel,
   };

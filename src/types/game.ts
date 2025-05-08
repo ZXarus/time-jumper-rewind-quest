@@ -1,3 +1,4 @@
+
 export interface Position {
   x: number;
   y: number;
@@ -45,6 +46,7 @@ export interface Platform {
   speed?: number;
   range?: number;
   initialPosition?: Position;
+  id?: string; // Added ID field for platforms
 }
 
 export interface Enemy {
@@ -57,6 +59,7 @@ export interface Enemy {
   speed: number;
   range?: number;
   initialPosition?: Position;
+  id?: string; // Added ID field for enemies
 }
 
 export interface Hazard {
@@ -65,12 +68,14 @@ export interface Hazard {
   width: number;
   height: number;
   type: 'spike' | 'laser' | 'fire';
+  id?: string; // Added ID field for hazards
 }
 
 export interface EnergyOrb {
   x: number;
   y: number;
   collected: boolean;
+  id?: string; // Added ID field for orbs
 }
 
 export interface EnergyBooster {
@@ -85,14 +90,8 @@ export interface Level {
   enemies: Enemy[];
   hazards: Hazard[];
   energyOrbs: EnergyOrb[];
-  energyBoosters?: EnergyBooster[]; // Added energy boosters to levels
+  energyBoosters?: EnergyBooster[];
   startPosition: Position;
   endPosition: Position;
-}
-
-export interface GameControls {
-  left: boolean;
-  right: boolean;
-  jump: boolean;
-  rewind: boolean;
+  // Remove width and height as they're not in the Level type
 }

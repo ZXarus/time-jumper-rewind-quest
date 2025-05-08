@@ -4,10 +4,10 @@ import type { Config } from "tailwindcss";
 const config = {
   darkMode: ["class"],
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
   ],
   prefix: "",
   theme: {
@@ -53,14 +53,26 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar-background))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          primary: "hsl(var(--sidebar-primary))",
+          "primary-foreground":
+            "hsl(var(--sidebar-primary-foreground))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground":
+            "hsl(var(--sidebar-accent-foreground))",
+          border: "hsl(var(--sidebar-border))",
+        },
         // Game specific colors
         game: {
-          bg: "#1A1F2C",
-          platform: "#403E43",
-          secondary: "#3E4C59",
-          tertiary: "#5A6B7B",
-          energy: "#0EA5E9",
-          accent: "#D946EF",
+          primary: "hsl(var(--game-primary))",
+          secondary: "hsl(var(--game-secondary))",
+          accent: "hsl(var(--game-accent))",
+          platform: "hsl(var(--game-platform))",
+          energy: "hsl(var(--game-energy))",
+          bg: "hsl(var(--game-bg))",
+          tertiary: "#6E59A5"
         },
       },
       borderRadius: {
@@ -70,46 +82,17 @@ const config = {
       },
       keyframes: {
         "accordion-down": {
-          from: { height: 0 },
+          from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: 0 },
+          to: { height: "0" },
         },
-        blink: {
-          "0%": { opacity: "0" },
-          "10%": { opacity: "0" },
-          "15%": { opacity: "100" },
-          "20%": { opacity: "0" },
-          "100%": { opacity: "0" },
-        },
-        collect: {
-          "0%": { transform: "scale(1)", opacity: "1" },
-          "100%": { transform: "scale(0.2)", opacity: "0" },
-        },
-        armSwing: {
-          "0%": { transform: "rotate(0deg)" },
-          "25%": { transform: "rotate(8deg)" },
-          "50%": { transform: "rotate(0deg)" },
-          "75%": { transform: "rotate(-8deg)" },
-          "100%": { transform: "rotate(0deg)" },
-        },
-        legWalk: {
-          "0%": { transform: "translateY(0px)" },
-          "25%": { transform: "translateY(-1px)" },
-          "50%": { transform: "translateY(0px)" },
-          "75%": { transform: "translateY(1px)" },
-          "100%": { transform: "translateY(0px)" },
-        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        blink: "blink 6s infinite",
-        collect: "collect 0.3s forwards",
-        armSwing: "armSwing 0.6s infinite",
-        legWalk: "legWalk 0.6s infinite"
       },
     },
   },
