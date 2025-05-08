@@ -13,7 +13,7 @@ export const saveGameProgress = (level: number, score: number) => {
     
     // Format the cookie string
     const cookieValue = `level=${level};score=${score}`;
-    document.cookie = `timeJumperProgress=${cookieValue};expires=${expiryDate.toUTCString()};path=/`;
+    document.cookie = `timeJumperProgress=${cookieValue};expires=${expiryDate.toUTCString()};path=/;SameSite=Strict`;
     
     // Also save to local storage as a backup
     localStorage.setItem('timeJumperProgress', JSON.stringify({ level, score }));
@@ -70,5 +70,30 @@ export const clearGameProgress = (): boolean => {
   } catch (error) {
     console.error("Failed to clear game progress:", error);
     return false;
+  }
+};
+
+// Save highest level reached
+export const saveHighestLevel = (level: number): boolean => {
+  try {
+    const currentHighest = getHighestLevel();
+    if (level > currentHighest) {
+      localStorage.setItem('timeJumperHighestLevel', level.toString());
+    }
+    return true;
+  } catch (error) {
+    console.error("Failed to save highest level:", error);
+    return false;
+  }
+};
+
+// Get highest level reached
+export const getHighestLevel = (): number => {
+  try {
+    const highestLevel = localStorage.getItem('timeJumperHighestLevel');
+    return highestLevel ? parseInt(highestLevel, 10) : 1;
+  } catch (error) {
+    console.error("Failed to get highest level:", error);
+    return 1;
   }
 };

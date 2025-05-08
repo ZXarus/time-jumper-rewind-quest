@@ -1,9 +1,15 @@
+
 import { useState, useCallback, useEffect } from "react";
 import { Level, GameState, PlayerState } from "@/types/game";
 import { levels } from "@/data/levels";
 import { toast } from "sonner";
 import { MAX_ENERGY } from "@/constants/gameConstants";
-import { saveGameProgress, loadGameProgress } from "@/utils/gameSave";
+import { 
+  saveGameProgress, 
+  loadGameProgress, 
+  saveHighestLevel, 
+  getHighestLevel
+} from "@/utils/gameSave";
 
 export const useLevelManager = (
   setPlayer: (updater: React.SetStateAction<PlayerState>) => void,
@@ -31,11 +37,21 @@ export const useLevelManager = (
         setGameState(prev => ({
           ...prev,
           level: savedProgress.level,
-          score: savedProgress.score,
+          score: 0, // Reset score to 0 when loading a level
         }));
         
         // Show toast notification about restored progress
-        toast(`Welcome back! Restored progress to Level ${savedProgress.level}`);
+        toast(`Welcome back! Continuing from Level ${savedProgress.level}`);
+      }
+    } else {
+      // Check if there's a highest level reached
+      const highestLevel = getHighestLevel();
+      if (highestLevel > 1) {
+        setGameState(prev => ({
+          ...prev,
+          level: highestLevel,
+        }));
+        toast(`Welcome back! You can continue from Level ${highestLevel}`);
       }
     }
   }, []);
@@ -73,19 +89,22 @@ export const useLevelManager = (
       isRewinding: false,
     });
     
-    // Keep the score from previous levels when advancing
+    const newLevel = levelIndex + 1;
+    
+    // Reset score when initializing a level
     setGameState(prev => {
-      const newLevel = levelIndex + 1;
       const newState = {
         ...prev,
         paused: false,
         gameOver: false,
         victory: false,
         level: newLevel,
+        score: 0, // Reset score to 0 when starting a level
       };
       
       // Save progress whenever a new level starts
-      saveGameProgress(newLevel, prev.score);
+      saveGameProgress(newLevel, 0);
+      saveHighestLevel(newLevel);
       
       return newState;
     });
@@ -101,10 +120,12 @@ export const useLevelManager = (
   
   // Advance to the next level
   const nextLevel = useCallback(() => {
-    // Save the current score before moving to next level
-    saveGameProgress(gameState.level + 1, gameState.score);
+    // Save the level progress before moving to next level
+    const nextLevelNum = gameState.level + 1;
+    saveGameProgress(nextLevelNum, 0); // Reset score when advancing
+    saveHighestLevel(nextLevelNum);
     initGameLevel(gameState.level);
-  }, [gameState.level, gameState.score, initGameLevel]);
+  }, [gameState.level, initGameLevel]);
 
   return {
     currentLevel,

@@ -64,88 +64,120 @@ const Player: React.FC<PlayerProps> = ({ player, isRewinding }) => {
           transform: facingDirection === "left" ? "scaleX(-1)" : "none",
         }}
       >
-        {/* Enhanced human character */}
+        {/* Enhanced realistic human character */}
         <div className="absolute w-full h-full flex flex-col items-center">
-          {/* Head */}
-          <div className="w-[55%] h-[30%] bg-[#FFDBC4] rounded-full relative mt-1 shadow-sm">
-            {/* Hair with better styling */}
-            <div className="absolute w-[100%] h-[55%] bg-[#673923] rounded-t-full top-[-3px]">
-              {/* Hair texture */}
-              <div className="absolute w-[80%] h-[40%] left-[10%] top-[20%] rounded-t-full border-t border-[#7F4934] opacity-60"></div>
+          {/* Detailed Head */}
+          <div className="w-[60%] h-[30%] bg-[#FFE0C9] rounded-full relative mt-[1px] shadow-md">
+            {/* Hair with better styling and shading */}
+            <div className="absolute w-[100%] h-[60%] bg-gradient-to-b from-[#4A2F1D] to-[#724128] rounded-t-full top-[-4px] overflow-hidden">
+              {/* Hair texture with highlights */}
+              <div className="absolute w-[20%] h-[50%] right-[20%] top-[10%] bg-[#8B5A3A] opacity-60 rounded-full"></div>
+              <div className="absolute w-[10%] h-[40%] left-[25%] top-[20%] bg-[#8B5A3A] opacity-60 rounded-full"></div>
+              <div className="absolute w-[15%] h-[30%] left-[55%] top-[5%] bg-[#9B6A4A] opacity-40 rounded-full"></div>
+              
+              {/* Side hair bangs */}
+              <div className="absolute w-[15%] h-[90%] left-0 bg-[#4A2F1D] rounded-l-full"></div>
+              <div className="absolute w-[15%] h-[90%] right-0 bg-[#4A2F1D] rounded-r-full"></div>
             </div>
             
-            {/* Face features */}
+            {/* Detailed Face features */}
             <div className="absolute w-full h-full flex justify-center items-center">
-              {/* Eyes */}
-              <div className="absolute top-[40%] left-[25%] w-[10%] h-[10%] bg-[#2C2C2C] rounded-full">
-                {/* Eye highlight */}
-                <div className="absolute top-0 left-0 w-[30%] h-[30%] bg-white rounded-full"></div>
-              </div>
-              <div className="absolute top-[40%] right-[25%] w-[10%] h-[10%] bg-[#2C2C2C] rounded-full">
-                {/* Eye highlight */}
-                <div className="absolute top-0 left-0 w-[30%] h-[30%] bg-white rounded-full"></div>
-              </div>
-              
               {/* Eyebrows */}
-              <div className="absolute top-[35%] left-[22%] w-[15%] h-[3%] bg-[#673923] rounded-full"></div>
-              <div className="absolute top-[35%] right-[22%] w-[15%] h-[3%] bg-[#673923] rounded-full"></div>
+              <div className="absolute top-[35%] left-[20%] w-[18%] h-[4%] bg-[#3D2314] rounded-full transform -rotate-6"></div>
+              <div className="absolute top-[35%] right-[20%] w-[18%] h-[4%] bg-[#3D2314] rounded-full transform rotate-6"></div>
               
-              {/* Mouth - changes based on state */}
-              <div className={`absolute bottom-[25%] left-[30%] w-[40%] h-[8%] ${isDead ? "bg-red-500" : 
-                isRewinding ? "bg-purple-500" : "bg-[#C96464]"} rounded-full`}>
+              {/* Eyes with animations */}
+              <div className="absolute top-[42%] left-[26%] w-[12%] h-[12%] bg-white rounded-full flex justify-center items-center">
+                <div className="w-[70%] h-[70%] bg-[#49678D] rounded-full flex justify-center items-center">
+                  <div className="w-[50%] h-[50%] bg-black rounded-full"></div>
+                  {/* Eye highlight */}
+                  <div className="absolute top-[15%] left-[15%] w-[25%] h-[25%] bg-white rounded-full"></div>
+                </div>
+                {/* Animated blink effect */}
+                <div className="absolute w-full h-full bg-[#FFE0C9] animate-blink opacity-0"></div>
+              </div>
+              <div className="absolute top-[42%] right-[26%] w-[12%] h-[12%] bg-white rounded-full flex justify-center items-center">
+                <div className="w-[70%] h-[70%] bg-[#49678D] rounded-full flex justify-center items-center">
+                  <div className="w-[50%] h-[50%] bg-black rounded-full"></div>
+                  {/* Eye highlight */}
+                  <div className="absolute top-[15%] left-[15%] w-[25%] h-[25%] bg-white rounded-full"></div>
+                </div>
+                {/* Animated blink effect */}
+                <div className="absolute w-full h-full bg-[#FFE0C9] animate-blink opacity-0"></div>
+              </div>
+              
+              {/* Nose */}
+              <div className="absolute top-[55%] left-[48%] w-[4%] h-[10%] bg-[#E8CBAE] rounded-full"></div>
+              
+              {/* Mouth - changes based on state with realistic shape */}
+              <div className={`absolute bottom-[20%] left-[35%] w-[30%] h-[7%] rounded-full overflow-hidden 
+                ${isDead ? "bg-[#D35F5F]" : isRewinding ? "bg-[#A64DFF]" : "bg-[#D35F5F]"}`}>
                 {!isDead && (
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[60%] h-[30%] bg-[#FFDBC4]"></div>
+                  <>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[80%] h-[40%] bg-[#FFE0C9]"></div>
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[40%] h-[40%] bg-[#C14545]"></div>
+                  </>
                 )}
               </div>
             </div>
           </div>
           
-          {/* Torso - improved clothing with details */}
-          <div className="w-[70%] h-[35%] bg-[#4782D3] rounded-lg mt-[-2px] relative shadow-sm">
-            {/* Collar */}
-            <div className="absolute top-0 left-[35%] w-[30%] h-[15%] bg-[#E8E8E8] rounded"></div>
+          {/* Enhanced Torso with realistic details */}
+          <div className="w-[70%] h-[38%] bg-gradient-to-b from-[#4782D3] to-[#3E75C0] rounded-lg mt-[-2px] relative shadow-md">
+            {/* Neck */}
+            <div className="absolute top-[-5px] left-[38%] w-[24%] h-[10%] bg-[#FFE0C9] rounded-t-sm"></div>
             
-            {/* Shirt details */}
-            <div className="absolute bottom-[20%] left-[10%] w-[80%] h-[1px] bg-[#3E75C0]"></div>
-            <div className="absolute bottom-[40%] left-[10%] w-[80%] h-[1px] bg-[#3E75C0]"></div>
+            {/* Detailed Collar */}
+            <div className="absolute top-0 left-[30%] w-[40%] h-[15%] bg-[#E8E8E8] rounded-t-sm"></div>
             
-            {/* Time device on chest */}
-            <div className="absolute top-[30%] left-[40%] w-[20%] h-[20%] bg-[#21324F] rounded-full">
-              <div className="absolute top-[25%] left-[25%] w-[50%] h-[50%] bg-[#61A3F6] rounded-full animate-pulse"></div>
+            {/* Shirt folds and details */}
+            <div className="absolute bottom-[20%] left-[10%] w-[80%] h-[1px] bg-[#3468B0]"></div>
+            <div className="absolute bottom-[40%] left-[10%] w-[80%] h-[1px] bg-[#3468B0]"></div>
+            <div className="absolute bottom-[60%] left-[10%] w-[80%] h-[1px] bg-[#3468B0]"></div>
+            
+            {/* Time device on chest with glow effect */}
+            <div className="absolute top-[30%] left-[40%] w-[20%] h-[25%] bg-[#21324F] rounded-full shadow-md">
+              <div className="absolute top-[25%] left-[25%] w-[50%] h-[50%] bg-[#61A3F6] rounded-full animate-pulse shadow-[0_0_8px_#61A3F6]"></div>
             </div>
+            
+            {/* Shoulder details */}
+            <div className="absolute top-[10%] left-[-8%] w-[15%] h-[20%] bg-[#4077C5] rounded-full"></div>
+            <div className="absolute top-[10%] right-[-8%] w-[15%] h-[20%] bg-[#4077C5] rounded-full"></div>
           </div>
           
-          {/* Arms with better proportions */}
-          <div className="flex w-[100%] justify-between mt-[-20px] relative z-10">
-            <div className="w-[15%] h-[25px] bg-[#FFDBC4] rounded-bl-full shadow-sm"></div>
-            <div className="w-[15%] h-[25px] bg-[#FFDBC4] rounded-br-full shadow-sm"></div>
+          {/* Enhanced Arms with better proportions and details */}
+          <div className="flex w-[100%] justify-between mt-[-26px] relative z-10">
+            <div className="w-[18%] h-[30px] bg-gradient-to-b from-[#FFE0C9] to-[#FFCFB0] rounded-bl-full shadow-md"></div>
+            <div className="w-[18%] h-[30px] bg-gradient-to-b from-[#FFE0C9] to-[#FFCFB0] rounded-br-full shadow-md"></div>
           </div>
           
-          {/* Legs - pants with details */}
+          {/* Enhanced Legs - pants with realistic details */}
           <div className="flex w-full mt-[-5px]">
-            <div className="w-1/2 h-[35%] bg-[#2D3447] rounded-b-lg mr-[1px] relative">
-              <div className="absolute bottom-[30%] left-[20%] w-[60%] h-[1px] bg-[#242A38]"></div>
+            <div className="w-1/2 h-[35%] bg-gradient-to-b from-[#2D3447] to-[#232A3D] rounded-b-lg mr-[1px] relative shadow-md">
+              <div className="absolute bottom-[30%] left-[20%] w-[60%] h-[1px] bg-[#1E2333]"></div>
+              <div className="absolute bottom-[60%] left-[20%] w-[60%] h-[1px] bg-[#1E2333]"></div>
             </div>
-            <div className="w-1/2 h-[35%] bg-[#2D3447] rounded-b-lg ml-[1px] relative">
-              <div className="absolute bottom-[30%] left-[20%] w-[60%] h-[1px] bg-[#242A38]"></div>
+            <div className="w-1/2 h-[35%] bg-gradient-to-b from-[#2D3447] to-[#232A3D] rounded-b-lg ml-[1px] relative shadow-md">
+              <div className="absolute bottom-[30%] left-[20%] w-[60%] h-[1px] bg-[#1E2333]"></div>
+              <div className="absolute bottom-[60%] left-[20%] w-[60%] h-[1px] bg-[#1E2333]"></div>
             </div>
           </div>
           
-          {/* Shoes with better design */}
+          {/* Enhanced Shoes with better design */}
           <div className="flex w-[90%] mt-[-2px]">
-            <div className="w-1/2 h-[10px] bg-[#21242C] rounded-b-lg mr-[2px] shadow-md"></div>
-            <div className="w-1/2 h-[10px] bg-[#21242C] rounded-b-lg ml-[2px] shadow-md"></div>
+            <div className="w-1/2 h-[12px] bg-gradient-to-b from-[#21242C] to-[#17191F] rounded-b-lg mr-[2px] shadow-md"></div>
+            <div className="w-1/2 h-[12px] bg-gradient-to-b from-[#21242C] to-[#17191F] rounded-b-lg ml-[2px] shadow-md"></div>
           </div>
         </div>
 
         {/* Animation effect for movement */}
         <div className={`absolute bottom-[-5px] left-0 w-full h-[3px] ${
-          !player.isGrounded && !player.isDead ? "bg-game-accent" : "bg-transparent"
+          !player.isGrounded && !player.isDead ? "bg-game-accent shadow-[0_0_5px_#8B5CF6]" : "bg-transparent"
         }`}></div>
         
         {/* Time rewind effect */}
         {isRewinding && (
-          <div className="absolute inset-0 rounded-md border-2 border-game-accent animate-pulse opacity-70"></div>
+          <div className="absolute inset-0 rounded-md border-2 border-game-accent animate-pulse opacity-70 shadow-[0_0_10px_rgba(139,92,246,0.6)]"></div>
         )}
       </div>
     </>

@@ -18,15 +18,51 @@ export const useGameLoop = (
   const FPS_CAP = 60;
   const FRAME_TIME = 1000 / FPS_CAP;
   
-  // Main game loop
+  // Add performance monitoring
+  const performanceChecksRef = useRef<{
+    lastCheck: number;
+    frameCount: number;
+    slowFrames: number;
+  }>({
+    lastCheck: 0,
+    frameCount: 0,
+    slowFrames: 0
+  });
+  
+  // Main game loop with improved timing and stability
   const gameLoop = useCallback((timestamp: number) => {
     if (!lastTimeRef.current) {
       lastTimeRef.current = timestamp;
       lastUpdateTimeRef.current = timestamp;
+      performanceChecksRef.current.lastCheck = timestamp;
     }
     
     const deltaTime = timestamp - lastTimeRef.current;
     lastTimeRef.current = timestamp;
+    
+    // Performance monitoring
+    performanceChecksRef.current.frameCount++;
+    if (deltaTime > 32) { // More than 32ms (less than 30fps)
+      performanceChecksRef.current.slowFrames++;
+    }
+    
+    // Every 5 seconds, check performance
+    if (timestamp - performanceChecksRef.current.lastCheck > 5000) {
+      const avgFPS = performanceChecksRef.current.frameCount / 5;
+      const slowFramePercentage = (performanceChecksRef.current.slowFrames / performanceChecksRef.current.frameCount) * 100;
+      
+      // Reset performance metrics
+      performanceChecksRef.current = {
+        lastCheck: timestamp,
+        frameCount: 0,
+        slowFrames: 0
+      };
+      
+      // Log performance issues if needed
+      if (slowFramePercentage > 20) {
+        console.warn(`Performance warning: ${avgFPS.toFixed(1)}fps, ${slowFramePercentage.toFixed(1)}% slow frames`);
+      }
+    }
     
     // Skip frame if game is paused/over/victory
     if (gameState.paused || gameState.gameOver || gameState.victory) {
@@ -37,21 +73,29 @@ export const useGameLoop = (
     // Use a consistent update rate for physics to ensure stable behavior
     const timeSinceLastUpdate = timestamp - lastUpdateTimeRef.current;
     
-    if (timeSinceLastUpdate >= FRAME_TIME) {
-      // Increase frame counter
-      frameCountRef.current += 1;
+    // More stable timing mechanism
+    const updatesToPerform = Math.floor(timeSinceLastUpdate / FRAME_TIME);
+    
+    if (updatesToPerform > 0) {
+      // Prevent too many updates at once (if game has been in background)
+      const maxUpdates = Math.min(updatesToPerform, 5);
       
-      // Update player physics based on controls
-      updatePlayerPhysics(controls, gameState);
+      for (let i = 0; i < maxUpdates; i++) {
+        // Increase frame counter
+        frameCountRef.current += 1;
+        
+        // Update player physics based on controls
+        updatePlayerPhysics(controls, gameState);
+        
+        // Update game elements (platforms, enemies)
+        updateGameElements(timestamp);
+        
+        // Check for collisions
+        checkCollisions();
+      }
       
-      // Update game elements (platforms, enemies)
-      updateGameElements(timestamp);
-      
-      // Check for collisions
-      checkCollisions();
-      
-      // Update last update time
-      lastUpdateTimeRef.current = timestamp - (timeSinceLastUpdate % FRAME_TIME);
+      // Update last update time - more accurate tracking
+      lastUpdateTimeRef.current += maxUpdates * FRAME_TIME;
     }
     
     frameRef.current = requestAnimationFrame(gameLoop);
