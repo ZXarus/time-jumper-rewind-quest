@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 // Import custom hooks
@@ -12,8 +12,11 @@ import { useGameControls } from "./useGameControls";
 import { useGameLoop } from "./useGameLoop";
 
 export const useGame = () => {
+  // Create a ref for frame count that can be passed to the player physics hook
+  const frameCountRef = useRef<number>(0);
+  
   // Initialize player physics
-  const { player, setPlayer, updatePlayerPhysics } = usePlayerPhysics();
+  const { player, setPlayer, updatePlayerPhysics } = usePlayerPhysics(frameCountRef);
   
   // Initialize time rewind functionality
   const { handleRewind, handleEmergencyRewind } = useTimeRewind(player, setPlayer);
@@ -67,7 +70,7 @@ export const useGame = () => {
   }, [controls.rewind, player.energy, player.timePositions.length, handleRewind]);
   
   // Initialize game loop
-  const { frameCountRef, gameInitializedRef } = useGameLoop(
+  const { gameInitializedRef } = useGameLoop(
     gameState, 
     updatePlayerPhysics,
     updateGameElements,
@@ -81,7 +84,7 @@ export const useGame = () => {
       initGameLevel(0);
       gameInitializedRef.current = true;
     }
-  }, [initGameLevel]);
+  }, [initGameLevel, gameInitializedRef]);
   
   return {
     gameState,

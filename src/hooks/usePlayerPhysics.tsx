@@ -1,11 +1,17 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { PlayerState, GameControls } from "@/types/game";
 import { applyMovement } from "@/utils/gamePhysics";
 import { recordTimePosition } from "@/utils/timeRewind";
 import { MAX_ENERGY, ENERGY_REGEN_RATE } from "@/constants/gameConstants";
 
-export const usePlayerPhysics = (frameCountRef: React.MutableRefObject<number>) => {
+export const usePlayerPhysics = (
+  frameCountRef?: React.MutableRefObject<number>
+) => {
+  // Create an internal frameCountRef if one is not provided
+  const internalFrameCountRef = useRef<number>(0);
+  const actualFrameCountRef = frameCountRef || internalFrameCountRef;
+  
   const [player, setPlayer] = useState<PlayerState>({
     position: { x: 0, y: 0 },
     velocity: { x: 0, y: 0 },
@@ -37,7 +43,7 @@ export const usePlayerPhysics = (frameCountRef: React.MutableRefObject<number>) 
       }
       
       // Record position for time rewind
-      const newTimePositions = recordTimePosition(prevPlayer, frameCountRef.current);
+      const newTimePositions = recordTimePosition(prevPlayer, actualFrameCountRef.current);
       
       // Regenerate energy when not rewinding
       let newEnergy = prevPlayer.energy;
@@ -105,7 +111,7 @@ export const usePlayerPhysics = (frameCountRef: React.MutableRefObject<number>) 
         timePositions: newTimePositions
       };
     });
-  }, [frameCountRef]);
+  }, [actualFrameCountRef]);
 
   return {
     player,
