@@ -96,6 +96,7 @@ export const updatePlatforms = (platforms: Platform[], playerOnPlatform?: {platf
     
     let newX = platform.x;
     let newY = platform.y;
+    let platformSpeed = platform.speed;
     
     // Calculate movement based on direction with smoother transitions
     if (platform.direction === 'horizontal') {
@@ -105,10 +106,10 @@ export const updatePlatforms = (platforms: Platform[], playerOnPlatform?: {platf
       
       // Change direction if reached range limit
       if (Math.abs(offset) >= maxOffset) {
-        platform.speed = -platform.speed;
+        platformSpeed = -platformSpeed;
       }
       
-      newX += platform.speed;
+      newX += platformSpeed;
     } else if (platform.direction === 'vertical') {
       const maxOffset = platform.range / 2;
       const centerY = platform.initialPosition.y;
@@ -116,22 +117,40 @@ export const updatePlatforms = (platforms: Platform[], playerOnPlatform?: {platf
       
       // Change direction if reached range limit
       if (Math.abs(offset) >= maxOffset) {
-        platform.speed = -platform.speed;
+        platformSpeed = -platformSpeed;
       }
       
-      newY += platform.speed;
+      newY += platformSpeed;
     }
     
     // If player is on this platform, move them with the platform
+    // Fixed implementation to avoid player getting stuck
     if (playerOnPlatform && playerOnPlatform.platformId === platform.id) {
-      playerOnPlatform.playerState.position.x += platform.direction === 'horizontal' ? platform.speed : 0;
-      playerOnPlatform.playerState.position.y += platform.direction === 'vertical' ? platform.speed : 0;
+      // Ensure player position is updated with the platform
+      if (platform.direction === 'horizontal') {
+        playerOnPlatform.playerState.position.x += platformSpeed;
+        // Also transfer some momentum to the player's velocity for smoother movement
+        playerOnPlatform.playerState.velocity.x = platformSpeed * 0.8;
+      }
+      
+      if (platform.direction === 'vertical') {
+        // If platform is moving down, move player with it
+        // If platform is moving up, push player up faster to avoid getting stuck
+        if (platformSpeed > 0) {
+          playerOnPlatform.playerState.position.y += platformSpeed;
+        } else {
+          // When moving up, position player correctly and give upward velocity
+          playerOnPlatform.playerState.position.y += platformSpeed;
+          playerOnPlatform.playerState.velocity.y = Math.min(playerOnPlatform.playerState.velocity.y, platformSpeed);
+        }
+      }
     }
     
     return {
       ...platform,
       x: newX,
-      y: newY
+      y: newY,
+      speed: platformSpeed // Update speed if direction changed
     };
   });
 };

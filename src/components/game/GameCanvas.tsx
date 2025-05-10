@@ -7,12 +7,13 @@ import Hazard from "@/components/game/Hazard";
 import EnergyOrb from "@/components/game/EnergyOrb";
 import EnergyBooster from "@/components/game/EnergyBooster";
 import EnergyMeter from "@/components/game/EnergyMeter";
+import BoosterMeter from "@/components/game/BoosterMeter";
 import GameStatus from "@/components/game/GameStatus";
 import SoundControl from "@/components/game/SoundControl";
 import ParticleEffect from "@/components/game/ParticleEffect";
 import RestartButton from "@/components/game/RestartButton";
-import { GAME_WIDTH, GAME_HEIGHT, GROUND_HEIGHT, COLORS } from "@/constants/gameConstants";
-import { Position, PlayerState, GameState, Level, Platform as PlatformType, Enemy as EnemyType, Hazard as HazardType, EnergyOrb as EnergyOrbType, EnergyBooster as EnergyBoosterType } from "@/types/game";
+import { GAME_WIDTH, GAME_HEIGHT, GROUND_HEIGHT } from "@/constants/gameConstants";
+import { PlayerState, GameState, Level, Platform as PlatformType, Enemy as EnemyType, Hazard as HazardType, EnergyOrb as EnergyOrbType, EnergyBooster as EnergyBoosterType } from "@/types/game";
 
 interface GameCanvasProps {
   gameState: GameState;
@@ -46,6 +47,25 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   resetLevel,
   nextLevel
 }) => {
+  // Track recently collected boosters for animations
+  const [recentlyCollected, setRecentlyCollected] = useState(false);
+  
+  // Calculate collected boosters
+  const collectedBoosters = energyBoosters ? energyBoosters.filter(b => b.collected).length : 0;
+  const totalBoosters = energyBoosters ? energyBoosters.length : 0;
+  
+  // Update when booster is collected
+  React.useEffect(() => {
+    if (collectedBoosters > 0) {
+      setRecentlyCollected(true);
+      const timer = setTimeout(() => {
+        setRecentlyCollected(false);
+      }, 1500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [collectedBoosters]);
+
   return (
     <div 
       className="relative game-canvas bg-game-bg border-4 border-game-tertiary rounded-lg overflow-hidden shadow-2xl"
@@ -68,7 +88,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         className="absolute bottom-0 left-0 w-full" 
         style={{ 
           height: GROUND_HEIGHT, 
-          backgroundColor: COLORS.ground,
+          backgroundColor: "#2A3246",
           borderTop: '2px solid rgba(255,255,255,0.1)',
           boxShadow: '0 -5px 15px rgba(0,0,0,0.2)',
         }}
@@ -152,6 +172,13 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         currentEnergy={player.energy} 
         maxEnergy={player.maxEnergy} 
         isRewinding={player.isRewinding}
+      />
+      
+      {/* Booster meter */}
+      <BoosterMeter 
+        collected={recentlyCollected}
+        boosterCount={collectedBoosters}
+        maxBoosters={totalBoosters}
       />
       
       {/* Game status overlay */}

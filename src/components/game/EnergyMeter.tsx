@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { Clock, Rewind } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface EnergyMeterProps {
   currentEnergy: number;
@@ -41,15 +42,27 @@ const EnergyMeter: React.FC<EnergyMeterProps> = ({
         <span className="text-white font-bold">Time Energy</span>
       </div>
       
-      <div className="w-48 h-5 bg-game-platform rounded-full overflow-hidden">
+      <div className="w-48 h-5 relative">
+        <Progress 
+          value={energyPercentage} 
+          className={`h-5 ${
+            isRewinding ? 'bg-gray-700' : 'bg-gray-700'
+          }`}
+        />
         <div 
-          className={`h-full rounded-full ${
-            isRewinding ? 'bg-game-accent' : 'bg-game-energy'
-          } ${
+          className={`absolute inset-0 bg-gradient-to-r ${
+            isRewinding ? 'from-game-accent to-purple-300' : 'from-game-energy to-blue-300'
+          } h-full rounded-full ${
             flashMeter && !isRewinding ? 'animate-pulse' : ''
           }`}
-          style={{ width: `${energyPercentage}%` }}
-        ></div>
+          style={{ 
+            width: `${energyPercentage}%`,
+            transition: 'width 0.3s ease'
+          }}
+        />
+        <div className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
+          {Math.floor(energyPercentage)}%
+        </div>
       </div>
     </div>
   );

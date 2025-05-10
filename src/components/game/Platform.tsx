@@ -8,26 +8,31 @@ interface PlatformProps {
 const Platform: React.FC<PlatformProps> = ({ platform }) => {
   const { x, y, width, height, type } = platform;
   
-  let platformClass = "platform";
+  // Determine platform styling based on type
+  let platformClasses = "absolute rounded-md shadow-md";
   
-  // Add additional classes based on platform type
-  if (type === "moving") {
-    platformClass += " bg-game-secondary";
+  if (type === "normal") {
+    platformClasses += " bg-game-platform border-t-2 border-gray-300";
+  } else if (type === "moving") {
+    platformClasses += " bg-game-secondary border-t-2 border-blue-400";
   } else if (type === "crumbling") {
-    platformClass += " bg-game-tertiary";
+    platformClasses += " bg-game-tertiary border-t-2 border-red-400";
   }
   
   return (
     <div
-      className={platformClass}
+      className={platformClasses}
       style={{
         left: x,
         top: y,
-        width: width,
-        height: height,
-        position: "absolute"
+        width,
+        height,
+        transition: type === "moving" ? "transform 0.05s linear" : undefined,
       }}
-    />
+    >
+      {/* Platform shine effect */}
+      <div className="absolute top-0 left-0 w-full h-1/3 bg-gradient-to-b from-white to-transparent opacity-10"></div>
+    </div>
   );
 };
 
