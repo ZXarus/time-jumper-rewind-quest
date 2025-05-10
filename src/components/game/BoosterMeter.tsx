@@ -34,9 +34,9 @@ const BoosterMeter: React.FC<BoosterMeterProps> = ({
     <div className="absolute top-16 left-4 flex flex-col items-start">
       <div className="flex items-center mb-2">
         {showEffect ? (
-          <BatteryCharging className="mr-2 text-green-400 animate-pulse" />
+          <BatteryCharging className="mr-2 text-purple-400 animate-pulse" />
         ) : (
-          <Battery className="mr-2 text-green-400" />
+          <Battery className="mr-2 text-purple-400" />
         )}
         <span className="text-white font-bold">Boosters</span>
       </div>
@@ -46,6 +46,19 @@ const BoosterMeter: React.FC<BoosterMeterProps> = ({
           value={boosterPercentage} 
           className="h-5 bg-gray-700"
         />
+        <div 
+          className="absolute inset-0 bg-gradient-to-r from-purple-600 to-fuchsia-500 opacity-80"
+          style={{ 
+            width: `${boosterPercentage}%`,
+            borderRadius: '0.375rem',
+            transition: 'width 0.5s ease-out',
+          }}
+        >
+          {/* Glowing effect */}
+          {showEffect && (
+            <div className="absolute inset-0 bg-white opacity-40 animate-pulse"></div>
+          )}
+        </div>
         <div 
           className={`absolute inset-0 flex items-center justify-start px-2 text-xs font-medium text-white ${
             showEffect ? 'animate-pulse' : ''

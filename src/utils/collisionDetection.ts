@@ -37,37 +37,9 @@ export const handlePlatformCollisions = (
       break;
     }
     
-    // Check side collisions to prevent getting stuck inside platforms
-    const platformRect = { 
-      x: platform.x, 
-      y: platform.y, 
-      width: platform.width, 
-      height: platform.height 
-    };
-    
-    const playerRect = getPlayerRect(player);
-    
-    // Only check side collisions if we're not already grounded from above
-    if (!isGrounded && checkCollision(playerRect, platformRect)) {
-      // Determine if this is a side collision
-      const playerBottom = player.position.y + player.height;
-      const platformTop = platform.y;
-      
-      // If bottom of player is below top of platform by more than a threshold, 
-      // it's likely a side collision
-      if (playerBottom - platformTop > 10) {
-        // Determine which side of the platform we're colliding with
-        const playerRight = player.position.x + player.width;
-        const platformRight = platform.x + platform.width;
-        
-        if (player.velocity.x > 0 && Math.abs(playerRight - platform.x) < Math.abs(player.position.x - platformRight)) {
-          // Hitting left side of platform
-          newPosition.x = platform.x - player.width;
-        } else if (player.velocity.x < 0) {
-          // Hitting right side of platform
-          newPosition.x = platform.x + platform.width;
-        }
-      }
+    // Check side collisions if not grounded
+    if (!isGrounded) {
+      handleSidePlatformCollisions(player, platform, newPosition);
     }
   }
   
@@ -81,6 +53,44 @@ export const handlePlatformCollisions = (
     isGrounded,
     platformId
   };
+};
+
+// Helper function to handle side collisions with platforms
+const handleSidePlatformCollisions = (
+  player: PlayerState, 
+  platform: Platform,
+  newPosition: { x: number, y: number }
+) => {
+  const platformRect = { 
+    x: platform.x, 
+    y: platform.y, 
+    width: platform.width, 
+    height: platform.height 
+  };
+  
+  const playerRect = getPlayerRect(player);
+  
+  if (checkCollision(playerRect, platformRect)) {
+    // Determine if this is a side collision
+    const playerBottom = player.position.y + player.height;
+    const platformTop = platform.y;
+    
+    // If bottom of player is below top of platform by more than a threshold, 
+    // it's likely a side collision
+    if (playerBottom - platformTop > 10) {
+      // Determine which side of the platform we're colliding with
+      const playerRight = player.position.x + player.width;
+      const platformRight = platform.x + platform.width;
+      
+      if (player.velocity.x > 0 && Math.abs(playerRight - platform.x) < Math.abs(player.position.x - platformRight)) {
+        // Hitting left side of platform
+        newPosition.x = platform.x - player.width;
+      } else if (player.velocity.x < 0) {
+        // Hitting right side of platform
+        newPosition.x = platform.x + platform.width;
+      }
+    }
+  }
 };
 
 // Handle enemy and hazard collisions

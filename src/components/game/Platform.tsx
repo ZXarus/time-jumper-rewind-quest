@@ -27,11 +27,33 @@ const Platform: React.FC<PlatformProps> = ({ platform }) => {
         top: y,
         width,
         height,
-        transition: type === "moving" ? "transform 0.05s linear" : undefined,
+        transition: type === "moving" ? "transform 0.05s ease-out" : undefined,
       }}
     >
       {/* Platform shine effect */}
       <div className="absolute top-0 left-0 w-full h-1/3 bg-gradient-to-b from-white to-transparent opacity-10"></div>
+      
+      {/* Visual indicators for moving platforms */}
+      {type === "moving" && (
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/2 left-0 w-full h-1/4 flex items-center">
+            <div className="w-full flex justify-around opacity-30">
+              <div className="h-1 w-1/6 bg-blue-200 rounded-full"></div>
+              <div className="h-1 w-1/6 bg-blue-200 rounded-full"></div>
+              <div className="h-1 w-1/6 bg-blue-200 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Visual indicators for crumbling platforms */}
+      {type === "crumbling" && (
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-3/4 h-1/2 border border-red-300 border-dashed opacity-20 rounded"></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
